@@ -20,7 +20,7 @@ async function Signin() {
     setLoading(false)
 
   } else {
-    navigation.navigate('Home')
+    navigation.navigate('Tabnavigator')
   }
 }
 

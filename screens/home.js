@@ -1,18 +1,12 @@
 import { View, TouchableOpacity, Image, Text, ScrollView, StyleSheet, TextInput } from "react-native";
+import {useNavigation, NavigationContainer, } from '@react-navigation/native';
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
 
+
 const Home = () => {
-
-    const [products, setProducts]= useState('')
+    const navigation = useNavigation();
     
-    async function getproducts() {
-    const { data, error } = await supabase
-    .from('products')
-    .select('*')
-}
-    
-
     return (
         <ScrollView style={styles.screen}>
 
@@ -68,10 +62,14 @@ const Home = () => {
                 </View>
 
                 {/* explore more button */}
-                <TouchableOpacity style={styles.explorebutton}>
+                <TouchableOpacity style={styles.explorebutton} onPress={() => navigation.navigate('Products')} >
                     <Text style={styles.explorebuttontext}>Explore More</Text>
-                </TouchableOpacity>    
-       
+                </TouchableOpacity>  
+
+                {/* image picker button */}
+                <TouchableOpacity style={styles.imagepickerbutton} onPress={() => navigation.navigate('Imagepicker')} >
+                    <Text style={styles.imagepickerbuttontext}>Upload or Take a Photo</Text>
+                </TouchableOpacity>  
 
             </View>
         </ScrollView>
@@ -197,6 +195,21 @@ const styles= StyleSheet.create({
     explorebuttontext: {
         color: 'black',
         marginTop: 4,
+        fontWeight: 'bold',
+    },
+
+    imagepickerbutton: {
+        backgroundColor: '#e1d8cf',
+        width: '45%',
+        alignItems: 'center',
+        height: 30,
+        borderRadius: 20,
+        marginTop: 10,
+    },
+
+    imagepickerbuttontext: {
+        color: 'black',
+        marginTop: 5,
         fontWeight: 'bold',
     },
 

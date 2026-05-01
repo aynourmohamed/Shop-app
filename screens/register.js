@@ -20,7 +20,7 @@ if (error) {
     alert('Please fill all fields')
 
   } else {
-    navigation.navigate('Home')
+    navigation.navigate('Tabnavigator')
   }
 }
 

@@ -1,3 +1,4 @@
+import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput} from "react-native";
 import { supabase } from "../lib/supabase";
 import { useState } from "react";
@@ -5,8 +6,10 @@ import { useState } from "react";
 const Login = ({navigation}) => {
     const [email, setEmail]= useState('')
     const [password, setPassword]= useState('')
+    const [loading, setLoading] = useState(false)
 
 async function Signin() {
+  setLoading(true)
   const { data, error } = await supabase.auth.signInWithPassword({
     email: email,
     password: password,
@@ -14,6 +17,7 @@ async function Signin() {
 
   if (error) {
     alert(error.message)
+    setLoading(false)
 
   } else {
     navigation.navigate('Home')

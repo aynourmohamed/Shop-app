@@ -1,6 +1,17 @@
 import { View, TouchableOpacity, Image, Text, ScrollView, StyleSheet, TextInput } from "react-native";
+import { useState } from "react";
+import { supabase } from "../lib/supabase";
 
 const Home = () => {
+
+    const [products, setProducts]= useState('')
+    
+    async function getproducts() {
+    const { data, error } = await supabase
+    .from('products')
+    .select('*')
+}
+    
 
     return (
         <ScrollView style={styles.screen}>

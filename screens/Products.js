@@ -7,7 +7,6 @@ import { useTheme } from '../context/ThemeContext';
 
 const Products = () => {
 
-    
 
     const { theme, isLowBattery} = useTheme()
 
@@ -38,6 +37,25 @@ const Products = () => {
         }
     }
 
+     // add
+     async function postWishlist(productID) {
+      console.log('heart clicked, productID:', productID)
+
+      const {data: {user}} = await supabase.auth.getUser()
+      console.log('user:', user)
+
+      const { error } = await supabase
+      .from('Wishlist')
+      .insert({ userid: user.id , productid: productID})
+      console.log('insert error:', error)
+
+      if (error) {
+          alert(error.message)
+        } else {
+          alert('added to wishlist')
+        }
+      }
+
     return (
         <ScrollView style={[styles.screen, { backgroundColor: background }]}>
 
@@ -56,15 +74,31 @@ const Products = () => {
             <View style={styles.productsbox}>
                 {products.map((product) => (
                     <View key={product.id} style={styles.card}>
-                        <Text style={styles.productname}>{product.name}</Text>
-                        <Text style={styles.productprice}>{product.price} USD</Text>
-                        <Text style={styles.productcategory}>{product.category}</Text>
-                        <TouchableOpacity style={styles.cartbutton}
+                    <Text style={styles.productname}>{product.name}</Text>
+                    <Text style={styles.productprice}>{product.price} USD</Text>
+                    <Text style={styles.productcategory}>{product.category}</Text>
+                  
+                    {/* buttons row */}
+                    <View style={styles.buttonrow}>
+                  
+                      {/* add to cart */}
+                      <TouchableOpacity
+                        style={styles.cartbutton}
                         onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}
-                        >
+                      >
                         <Text style={styles.cartbuttontext}>Add to Cart</Text>
-                        </TouchableOpacity>
+                      </TouchableOpacity>
+                  
+                      {/* love button */}
+                      <TouchableOpacity
+                        style={styles.lovebutton}
+                        onPress={() => postWishlist(product.id)}
+                      >
+                        <Text style={styles.lovebuttontext}>❤️</Text>
+                      </TouchableOpacity>
+                  
                     </View>
+                  </View>
                 ))}
             </View>
 
@@ -142,6 +176,23 @@ const styles = StyleSheet.create({
       cartbuttontext: {
         color: 'black',
         fontSize: 13,
+      },
+
+      buttonrow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 8,
+      },
+      lovebutton: {
+        backgroundColor: '#fff0f0',
+        padding: 8,
+        borderRadius: 20,
+        alignItems: 'center',
+        width: '20%',
+      },
+      lovebuttontext: {
+        fontSize: 16,
       },
     
 })

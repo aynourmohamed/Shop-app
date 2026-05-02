@@ -1,6 +1,7 @@
-import { View, Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { ThemeProvider } from './context/ThemeContext';
 
 import Welcome from './screens/Welcome';
 import Login from './screens/Login';
@@ -33,9 +34,23 @@ function RootStack() {
 }
 
 export default function App() {
+
   return (
+
+<ThemeProvider>
     <NavigationContainer>
       <RootStack />
     </NavigationContainer>
+  </ThemeProvider>
+  
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    marginTop: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

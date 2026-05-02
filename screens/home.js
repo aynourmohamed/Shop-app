@@ -1,14 +1,33 @@
 import { View, TouchableOpacity, Image, Text, ScrollView, StyleSheet, TextInput } from "react-native";
-import {useNavigation, NavigationContainer, } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
-
+import { useTheme } from '../context/ThemeContext'
+import { useNetworkState } from 'expo-network';
 
 const Home = () => {
     const navigation = useNavigation();
-    
+
+    const networkState = useNetworkState();
+    const Offline = !networkState.isConnected 
+
+    const { theme } = useTheme()
+
+    const background = theme === 'dark' ? '#1a1a1a' : '#ffffff'
+    const textColor  = theme === 'dark' ? '#ffffff' : '#2C1F1F'
+
+
     return (
-        <ScrollView style={styles.screen}>
+        <ScrollView style={[styles.screen, { backgroundColor: background }]}>
+
+             {/* network banner — only shows when offline */}
+             {Offline && (
+                <View style={styles.offlinebanner}>
+                    <Text style={styles.offlinetext}>
+                        No Network Connection
+                    </Text>
+                </View>
+             )}
 
             {/* logo */}
             <View style={styles.logo}>
@@ -212,5 +231,16 @@ const styles= StyleSheet.create({
         marginTop: 5,
         fontWeight: 'bold',
     },
+
+    offlinebanner: {
+        backgroundColor: '#ff4444',
+        padding: 10,
+        alignItems: 'center',
+      },
+      offlinetext: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 14,
+      },
 
 })

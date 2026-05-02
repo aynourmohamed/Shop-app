@@ -1,14 +1,27 @@
 import { View, TouchableOpacity, Image, Text, ScrollView, StyleSheet, TextInput } from "react-native";
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
+import * as Haptics from 'expo-haptics';
+import { useTheme } from '../context/ThemeContext';
+
 
 const Products = () => {
+
     
+
+    const { theme, isLowBattery} = useTheme()
+
+    const background = theme === 'dark' ? '#1a1a1a' : '#ffffff'
+    const textColor  = theme === 'dark' ? '#ffffff' : '#2C1F1F'
     const [products, setProducts] = useState([])
 
     useEffect(() => {
-        getProducts()
-    }, [])
+        if (isLowBattery) {
+          console.log('Battery low — skipping sync')
+        } else {
+          getProducts()
+        }
+      }, [])
 
     async function getProducts() {
         const {data,error} = await supabase
@@ -26,7 +39,7 @@ const Products = () => {
     }
 
     return (
-        <ScrollView style={styles.screen}>
+        <ScrollView style={[styles.screen, { backgroundColor: background }]}>
 
             {/* logo */}
             <View style={styles.logo}>
@@ -46,7 +59,9 @@ const Products = () => {
                         <Text style={styles.productname}>{product.name}</Text>
                         <Text style={styles.productprice}>{product.price} USD</Text>
                         <Text style={styles.productcategory}>{product.category}</Text>
-                        <TouchableOpacity style={styles.cartbutton}>
+                        <TouchableOpacity style={styles.cartbutton}
+                        onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}
+                        >
                         <Text style={styles.cartbuttontext}>Add to Cart</Text>
                         </TouchableOpacity>
                     </View>

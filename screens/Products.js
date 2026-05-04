@@ -5,7 +5,7 @@ import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
 
 
-const Products = () => {
+const Products = ({navigation}) => {
 
 
     const { theme, isLowBattery} = useTheme()
@@ -37,7 +37,29 @@ const Products = () => {
         }
     }
 
-     // add
+    // add to cart
+    async function addtoCart(productID) {
+
+      const {data: {user}} = await supabase.auth.getUser()
+      console.log('user:', user)
+
+      const { error } = await supabase
+      .from('Cart')
+      .insert({ 
+        userid: user.id , 
+        productid: productID,
+        quantity: 1})
+
+      console.log('insert error:', error)
+
+      if (error) {
+          alert(error.message)
+        } else {
+          alert('added to cart')
+        }
+      }
+
+     // add wishlist
      async function postWishlist(productID) {
       console.log('heart clicked, productID:', productID)
 
@@ -84,8 +106,9 @@ const Products = () => {
                       {/* add to cart */}
                       <TouchableOpacity
                         style={styles.cartbutton}
-                        onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}
-                      >
+                        onPress={() => {
+                          addtoCart(product.id)
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
                         <Text style={styles.cartbuttontext}>Add to Cart</Text>
                       </TouchableOpacity>
                   
@@ -95,6 +118,10 @@ const Products = () => {
                         onPress={() => postWishlist(product.id)}
                       >
                         <Text style={styles.lovebuttontext}>❤️</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity style={styles.barcodebutton} onPress={() => navigation.navigate('Barcodescanner')}>
+                        <Text>Scan Barcode</Text>
                       </TouchableOpacity>
                   
                     </View>
@@ -184,6 +211,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 8,
       },
+
       lovebutton: {
         backgroundColor: '#fff0f0',
         padding: 8,
@@ -191,8 +219,18 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: '20%',
       },
+
       lovebuttontext: {
         fontSize: 16,
       },
+
+      barcodebutton: {
+        backgroundColor: '#e1d8cf',
+        padding: 8,
+        borderRadius: 20,
+        alignItems: 'center',
+        width: '40%',
+      },
+
     
 })

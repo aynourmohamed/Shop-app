@@ -237,6 +237,7 @@ const styles= StyleSheet.create({
         padding: 10,
         alignItems: 'center',
       },
+      
       offlinetext: {
         color: 'white',
         fontWeight: 'bold',

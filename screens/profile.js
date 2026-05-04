@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 
-const Profile = () => {
+const Profile = ({navigation}) => {
 
      // get theme and toggle from context
   const { theme, toggleTheme } = useTheme()
@@ -29,6 +29,11 @@ const Profile = () => {
           {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
         </Text>
       </TouchableOpacity>
+
+      {/* logout button */}
+      <TouchableOpacity style={styles.logoutbutton} onPress={() => navigation.navigate('Welcome')} >
+                    <Text style={styles.logoutbuttontext}>Logout</Text>
+                </TouchableOpacity> 
 
         </View>
     );
@@ -60,6 +65,21 @@ const styles = StyleSheet.create({
       fontSize: 16,
       fontWeight: 'bold',
     },
+
+    logoutbutton: {
+      backgroundColor: '#e1d8cf',
+      width: '35%',
+      alignItems: 'center',
+      height: 25,
+      borderRadius: 20,
+      marginTop: 10,
+  },
+
+  logoutbuttontext: {
+      color: 'black',
+      marginTop: 4,
+      fontWeight: 'bold',
+  },
   })
   
 

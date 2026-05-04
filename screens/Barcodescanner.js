@@ -1,43 +1,181 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Camera } from 'expo-camera';
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import { useState } from 'react';
+import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { supabase } from "../lib/supabase";
 
-const BarcodeScanner = () => {
-    const [barcode, setBarcode] = useState('');
+const Barcodescanner = () => {
 
-    const handleBarCodeRead = ({ data }) => {
-        setBarcode(data);
-        alert(`Barcode scanned: ${data}`);
-    };
+  const [facing, setFacing] = useState('back');
+  const [permission, requestPermission] = useCameraPermissions();
+  const[scanned,setScanned] = useState(false)
+  const [product, setProduct] = useState(null)
 
+  if (!permission) {
+    // Camera permissions are still loading.
+    return <View />;
+  }
+
+  if (!permission.granted) {
+    // Camera permissions are not granted yet.
     return (
-        <View style={styles.container}>
-            <Camera
-                style={styles.preview}
-                onBarCodeRead={handleBarCodeRead}
-                captureAudio={false}
-            />
-            {barcode ? <Text style={styles.barcodeText}>{barcode}</Text> : null}
-        </View>
+      <View style={styles.container}>
+        <Text style={styles.message}>We need your permission to scan Barcode</Text>
+        <Button onPress={requestPermission} title="grant permission" />
+      </View>
     );
-};
+  }
+
+  //barcode is scanned
+  async function handleBarcodeScan({data}) {
+    //stop scanning when scanned once
+    if (scanned) return 
+    setScanned(true)
+
+    console.log('barcode scanned:', data)
+
+    //search in products
+    const {data: products, error} = await supabase
+    .from('Products')
+    .select('*')
+    .eq('barcode', data)
+    .single()
+
+    if (error || !products) {
+        alert('Product not found for this barcode')
+        setScanned(false)
+    } else {
+        setProduct(products)
+    }
+  }
+
+
+  function toggleCameraFacing() {
+    setFacing(current => (current === 'back' ? 'front' : 'back'));
+  }
+
+  return (
+    <View style={styles.container}>
+
+        {/* camera */}
+        <CameraView style={styles.camera} facing={facing} onBarcodeScanned={handleBarcodeScan} />
+
+        {/* flip button */}
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
+          <Text style={styles.text}>Flip Camera</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* products */}
+      {product && (
+      <View style={styles.productbox}>
+        <Text style={styles.productname}>{product.name}</Text>
+        <Text style={styles.productprice}>{product.price} USD</Text>
+        <Text style={styles.productcategory}>{product.category}</Text>
+
+        {/* button to scan again */}
+        <TouchableOpacity style={styles.againbutton} onPress={() => {
+            setScanned(false) 
+            setProduct(null) }}>
+          <Text style={styles.againtext}>Scan Again Please</Text>
+        </TouchableOpacity>
+
+        {/* add to cart the scanned item */}
+        <TouchableOpacity style={styles.addtocartbutton} onPress={() => {
+            setScanned(false) 
+            setProduct(null) }}>
+          <Text style={styles.addtocarttext}>Add to Cart</Text>
+        </TouchableOpacity>
+      </View>
+
+      )}
+    </View>
+  );
+}
+
+export default Barcodescanner
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    preview: {
-        flex: 1,
-        justifyContent: 'flex-end',
-        alignItems: 'center',
-    },
-    barcodeText: {
-        fontSize: 18,
-        color: 'black',
-        margin: 20,
-    },
-});
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+  },
 
-export default BarcodeScanner;
+  message: {
+    textAlign: 'center',
+    paddingBottom: 10,
+  },
+
+  camera: {
+    flex: 1,
+  },
+
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 64,
+    flexDirection: 'row',
+    backgroundColor: 'transparent',
+    width: '100%',
+    paddingHorizontal: 64,
+  },
+
+  button: {
+    flex: 1,
+    alignItems: 'center',
+  },
+
+  text: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  productbox: {
+    position: 'absolute',
+    width: '100%',
+    backgroundColor: 'white',
+    padding: 20,
+  },
+
+  productname: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'black',
+    marginBottom: 5,
+  },
+
+  productprice: {
+    fontSize: 14,
+    color: '#c2b5be',
+    marginBottom: 5,
+  },
+
+  productcategory: {
+    fontSize: 12,
+    color: 'gray',
+    marginBottom: 10,
+  },
+
+  againbutton: {
+    backgroundColor: '#e1d8cf',
+    padding: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+
+  againtext: {
+    fontWeight: 'bold',
+  },
+
+  addtocartbutton: {
+    backgroundColor: '#e1d8cf',
+    padding: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+
+  addtocarttext: {
+    fontWeight: 'bold',
+  },
+ 
+})

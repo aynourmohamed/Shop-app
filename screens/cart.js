@@ -1,39 +1,58 @@
-import {ScrollView, View, Text, TextInput, Image, StyleSheet, FlatList} from 'react-native';
-import {useState} from 'react';
+import {ScrollView, View, Text, TextInput, Image, StyleSheet, TouchableOpacity} from 'react-native';
+import {useEffect, useState} from 'react';
 import { useTheme } from '../context/ThemeContext';
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import { supabase } from '../lib/supabase';
 
 
-const Cart = () => {
+const Cart = ({navigation}) => {
 
   const { theme } = useTheme()
 
 const background = theme === 'dark' ? '#1a1a1a' : '#ffffff'
 const textColor  = theme === 'dark' ? '#ffffff' : '#2C1F1F'
 
-  const [items, setItems] = useState([]);
+  const [cart, setCart] = useState([])
 
-  const storeData = async (value) => {
-    try {
-      await AsyncStorage.setItem('my-key', value);
-    } catch (e) {
-      // saving error
-    }
-  };
+  useEffect(() => {
+    getCart()
+  }, [])
 
-  const getData = async () => {
-    try {
-      const value = await AsyncStorage.getItem('my-key');
-      if (value !== null) {
-        // value previously stored
+
+  // fetch
+  async function getCart() {
+    const {data,error} = await supabase
+    .from('Cart')
+    .select('*')
+
+    console.log('data:', data)
+    console.log('error:', error)
+
+    if (error) {
+        alert(error.message)
+      } else {
+        setCart(data)
       }
-    } catch (e) {
-      // error reading value
     }
-  };
+
+
+    // delete
+    async function deleteCart(id) {
+      const {error} = await supabase
+      .from('Cart')
+      .delete()
+      .eq('id', id)
+
+      if (error) {
+          alert(error.message)
+      } else {
+          getCart()
+      }
+  }
+
+  
 
   return(
-    <View style={[styles.screen, { backgroundColor: background }]}>
+    <ScrollView style={[styles.screen, { backgroundColor: background }]}>
 
             {/* logo */}
             <View style={styles.logo}>
@@ -48,18 +67,38 @@ const textColor  = theme === 'dark' ? '#ffffff' : '#2C1F1F'
 
             {/* items added to cart */}
             <View style={styles.itemsbox}>
-            <FlatList
-            data={items}
-            renderItem={({ item }) => (
-              <View style={styles.card}>
-                <Text style={{ color: textColor }}>{item.name}</Text>
-                <Text style={{ color: textColor }}>{item.price} USD</Text>
-              </View>
-            )}
-            keyExtractor={(item) => item.id.toString()}/>
-                
+            {cart.length === 0 ? (
+              <Text style={[styles.emptytext, {color: textColor}]}>Your cart is empty</Text>
+            ) : (
+              cart.map((item) => (
+                <View key={item.id} style={styles.card}>
+                  <View style={styles.cardinfo}>
+                    <Text style={[styles.productname, {color: textColor }]}>{item.productid}</Text>
+                    <Text style={styles.productprice}>Qty: {item.quantity || 1}</Text>
+                </View>
+
+
+            {/* remove */}
+            <TouchableOpacity
+            style={styles.removebutton} onPress={() => deleteCart(item.id)}>
+              <Text style={styles.removebuttontext}>Remove</Text>
+            </TouchableOpacity>
+
             </View>
-    </View>
+              ))
+            )}
+
+            {/* checkout */}
+            {cart.length > 0 && (
+            <TouchableOpacity
+            style={styles.checkoutbutton} onPress={() => navigation.navigate('Checkout')} >
+              <Text style={styles.checkoutbuttontext}>Checkout</Text>
+            </TouchableOpacity>
+            )}
+            </View>
+                
+    </ScrollView>
+
 
   )
 }
@@ -96,6 +135,58 @@ searchinput: {
 
 itemsbox: {
   padding: 15,
+},
+
+removebutton: {
+  backgroundColor: '#e1d8cf',
+  padding: 8,
+  borderRadius: 20,
+  alignItems: 'center',
+  marginBottom: 20,
+},
+
+checkoutbutton: {
+  backgroundColor: '#e1d8cf',
+  padding: 8,
+  borderRadius: 20,
+  alignItems: 'center',
+},
+
+card: {
+  backgroundColor: '#f9f7f6',
+  borderRadius: 10,
+  padding: 15,
+  marginBottom: 15,
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+},
+cardinfo: {
+  flex: 1,
+},
+productname: {
+  fontSize: 16,
+  fontWeight: 'bold',
+  marginBottom: 4,
+},
+productprice: {
+  fontSize: 14,
+  color: '#c2b5be',
+},
+emptytext: {
+  textAlign: 'center',
+  fontSize: 16,
+  marginTop: 50,
+},
+removebuttontext: {
+  color: 'black',
+  fontSize: 13,
+  fontWeight: 'bold',
+},
+checkoutbuttontext: {
+  fontSize: 16,
+  fontWeight: 'bold',
+  color: '#2C1F1F',
 },
 
 })

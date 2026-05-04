@@ -36,10 +36,10 @@ export default function ImagePickerExample() {
     }
   }
 
-    // upload image to supabase
-    const uploadimage = async (uri) => {
-      setUploading(true)
-    
+  // upload image to supabase
+  const uploadimage = async (uri) => {
+    setUploading(true)
+
 
     const response = await fetch(uri)
     const blob = await response.blob()
@@ -47,12 +47,12 @@ export default function ImagePickerExample() {
     const filename = `product-${Date.now()}.jpg`
 
     const { data, error } = await supabase
-    .storage
-    .from('productimage')
-    .upload(filename, {
-      upsert: false
+      .storage
+      .from('productimage')
+      .upload(filename, {
+        upsert: false
 
-    })
+      })
 
     if (error) {
       Alert.alert('Upload failed', error.message)
@@ -66,9 +66,9 @@ export default function ImagePickerExample() {
 
   return (
     <View style={styles.container}>
-      <Button 
-        title={uploading ? 'Uploading...' : 'Pick a product image'} 
-        onPress={pickImage} 
+      <Button
+        title={uploading ? 'Uploading...' : 'Pick a product image'}
+        onPress={pickImage}
       />
       {image && (
         <Image source={{ uri: image }} style={styles.image} />

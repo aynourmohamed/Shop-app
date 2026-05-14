@@ -13,6 +13,7 @@ import Storelocator from './screens/Storelocator';
 import Checkout from './screens/Checkout';
 import Tabnavigator from './navigation/Tabnavigator';
 import Imagepicker from './screens/Imagepicker';
+import Orderhistory from './screens/Orderhistory';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -39,6 +40,7 @@ function RootStack() {
       <Stack.Screen name="Barcodescanner" component={Barcodescanner} />
       <Stack.Screen name="Storelocator" component={Storelocator} />
       <Stack.Screen name="Imagepicker" component={Imagepicker} />
+      <Stack.Screen name="Orderhistory" component={Orderhistory} />
 
     </Stack.Navigator>
   );

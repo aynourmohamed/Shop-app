@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, Alert, StyleSheet, TouchableOpacity } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from '../lib/supabase';
 
 
 const Checkout = ({navigation}) => {
@@ -23,6 +25,30 @@ const Checkout = ({navigation}) => {
             Alert.alert('Error', 'Please fill in all fields');
             return
         }
+
+        const {data: {user}} = await supabase.auth.getUser()
+        const cartData = await AsyncStorage.getItem('cart')
+        const cartItems = cartData ? JSON.parse(cartData) : []
+
+        const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+
+        const {error} = await supabase
+        .from('Orders')
+        .insert({
+          userid: user.id,
+          items: JSON.stringify(cartItems),
+          total: total, 
+          status: 'pending',
+        })
+
+        if (error) {
+          Alert.alert('Error', error.message)
+          return
+        }
+
+        await AsyncStorage.removeItem('cart')
+
+
         await sendorderNotifications();
         Alert.alert('Success', 'Checkout completed!');
     }

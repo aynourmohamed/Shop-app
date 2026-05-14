@@ -35,6 +35,12 @@ const Profile = ({navigation}) => {
                     <Text style={styles.logoutbuttontext}>Logout</Text>
                 </TouchableOpacity> 
 
+           {/* order button */}
+      <TouchableOpacity style={styles.orderbutton} onPress={() => navigation.navigate('Orderhistory')} >
+                    <Text style={styles.orderbuttontext}>Order History</Text>
+                </TouchableOpacity> 
+
+
         </View>
     );
 };
@@ -80,6 +86,21 @@ const styles = StyleSheet.create({
       marginTop: 4,
       fontWeight: 'bold',
   },
+
+  ordertbutton: {
+    backgroundColor: '#e1d8cf',
+    width: '35%',
+    alignItems: 'center',
+    height: 25,
+    borderRadius: 20,
+    marginTop: 10,
+},
+
+orderbuttontext: {
+    color: 'black',
+    marginTop: 4,
+    fontWeight: 'bold',
+},
   })
   
 

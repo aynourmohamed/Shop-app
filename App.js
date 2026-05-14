@@ -2,6 +2,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ThemeProvider } from './context/ThemeContext';
+import * as Notifications from 'expo-notifications';
+import { useEffect } from 'react';
 
 import Welcome from './screens/Welcome';
 import Login from './screens/Login';
@@ -11,6 +13,15 @@ import Storelocator from './screens/Storelocator';
 import Checkout from './screens/Checkout';
 import Tabnavigator from './navigation/Tabnavigator';
 import Imagepicker from './screens/Imagepicker';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+})
 
 const Stack = createNativeStackNavigator();
 
@@ -33,7 +44,13 @@ function RootStack() {
   );
 }
 
+
 export default function App() {
+
+  useEffect(() => {
+    Notifications.requestPermissionsAsync()
+  },
+  [])
 
   return (
 

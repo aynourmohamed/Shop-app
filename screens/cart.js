@@ -1,7 +1,8 @@
 import {ScrollView, View, Text, TextInput, Image, StyleSheet, TouchableOpacity} from 'react-native';
-import {useEffect, useState} from 'react';
+import {useCallback, useState} from 'react';
 import { useTheme } from '../context/ThemeContext';
-import { supabase } from '../lib/supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 
 const Cart = ({navigation}) => {
@@ -13,43 +14,61 @@ const textColor  = theme === 'dark' ? '#ffffff' : '#2C1F1F'
 
   const [cart, setCart] = useState([])
 
-  useEffect(() => {
-    getCart()
-  }, [])
+  useFocusEffect(
+    useCallback(() => {
+      loadCart()
+    },
+  [])
+)
 
-
-  // fetch
-  async function getCart() {
-    const {data,error} = await supabase
-    .from('Cart')
-    .select('*')
-
-    console.log('data:', data)
-    console.log('error:', error)
-
-    if (error) {
-        alert(error.message)
-      } else {
-        setCart(data)
+  // read
+  async function loadCart() {
+    try{
+      const value = await AsyncStorage.getItem('cart')
+      if (value !== null) {
+        setCart(JSON.parse(value)) //string to array
       }
+    } catch (error) {
+      console.log('load error:', error)
     }
+  }
 
-
-    // delete
-    async function deleteCart(id) {
-      const {error} = await supabase
-      .from('Cart')
-      .delete()
-      .eq('id', id)
-
-      if (error) {
-          alert(error.message)
-      } else {
-          getCart()
+    // remove
+    async function removeFromCart(id) {
+      try{ 
+        const updatedCart = cart.filter(item => item.id !== id)
+        await AsyncStorage.setItem('cart', JSON.stringify(updatedCart)) //array to string
+        setCart(updatedCart)
+      } catch (error) {
+        console.log('remove error:', error)
       }
   }
 
-  
+  // increase 
+  async function increaseQunatity(id){
+
+    const updatedCart = cart.map(item =>
+      item.id === id
+      ? { ...item, quantity: item.quantity + 1 }
+      : item
+    )
+    await AsyncStorage.setItem('cart', JSON.stringify(updatedCart))
+    setCart(updatedCart)
+  }
+
+  // decrease 
+  async function decreaseQunatity(id){
+
+    const updatedCart = cart.map(item =>
+      item.id === id
+      ? { ...item, quantity: item.quantity - 1 }
+      : item
+    ).filter(item => item.quantity > 0) // remove items when quantity hits zero
+    await AsyncStorage.setItem('cart', JSON.stringify(updatedCart))
+    setCart(updatedCart)
+  }
+
+
 
   return(
     <ScrollView style={[styles.screen, { backgroundColor: background }]}>
@@ -70,21 +89,30 @@ const textColor  = theme === 'dark' ? '#ffffff' : '#2C1F1F'
             {cart.length === 0 ? (
               <Text style={[styles.emptytext, {color: textColor}]}>Your cart is empty</Text>
             ) : (
-              cart.map((item) => (
-                <View key={item.id} style={styles.card}>
+              cart.map((item, index) => (
+                <View key={item.id || index} style={styles.card}>
                   <View style={styles.cardinfo}>
-                    <Text style={[styles.productname, {color: textColor }]}>{item.productid}</Text>
-                    <Text style={styles.productprice}>Qty: {item.quantity || 1}</Text>
+                    <Text style={[styles.productname, {color: textColor }]}>{item.name}</Text>
+                    <Text style={styles.productprice}> {item.price} USD</Text>
+
+                    <View style={styles.qunaityrow}>
+                      <TouchableOpacity style={styles.quantitybutton} onPress={() => decreaseQunatity(item.id)}>
+                        <Text style={styles.quantitybuttontext}>-</Text>
+                      </TouchableOpacity>
+
+                      <Text style={[styles.quantitytext, { color: textColor }]}> {item.quantity}</Text>
+
+                      <TouchableOpacity style={styles.quantitybutton} onPress={() => increaseQunatity(item.id)}>
+                        <Text style={styles.quantitybuttontext}>+</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  {/* remove */}
+                  <TouchableOpacity style={styles.removebutton} onPress={() => removeFromCart(item.id)}>
+                    <Text style={styles.removebuttontext}>Remove</Text>
+                  </TouchableOpacity>
                 </View>
-
-
-            {/* remove */}
-            <TouchableOpacity
-            style={styles.removebutton} onPress={() => deleteCart(item.id)}>
-              <Text style={styles.removebuttontext}>Remove</Text>
-            </TouchableOpacity>
-
-            </View>
               ))
             )}
 
@@ -98,8 +126,6 @@ const textColor  = theme === 'dark' ? '#ffffff' : '#2C1F1F'
             </View>
                 
     </ScrollView>
-
-
   )
 }
 
@@ -135,6 +161,33 @@ searchinput: {
 
 itemsbox: {
   padding: 15,
+},
+
+quantitybutton: {
+  backgroundColor: '#e1d8cf',
+  width: 30,
+  height: 30,
+  borderRadius: 15,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+
+qunaityrow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginTop: 8,
+},
+
+quantitybuttontext: {
+  fontSize: 18,
+  fontWeight: 'bold',
+  color: '#2C1F1F',
+},
+
+quantitytext: {
+  fontSize: 16,
+  fontWeight: 'bold',
+  marginHorizontal: 12,
 },
 
 removebutton: {

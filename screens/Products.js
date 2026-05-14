@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 const Products = ({navigation}) => {
@@ -38,26 +39,42 @@ const Products = ({navigation}) => {
     }
 
     // add to cart
-    async function addtoCart(productID) {
+    async function addtoCart(product) {
+      try{
+        const existing = await AsyncStorage.getItem('cart')
+        const cart = existing ? JSON.parse(existing) : []
 
-      const {data: {user}} = await supabase.auth.getUser()
-      console.log('user:', user)
+        console.log('existing cart:', cart)       
+        console.log('product to add:', product.id)
 
-      const { error } = await supabase
-      .from('Cart')
-      .insert({ 
-        userid: user.id , 
-        productid: productID,
-        quantity: 1})
+        const alreadyInCart = cart.find(item => item.id === product.id)
+        console.log('already in cart:', alreadyInCart)
 
-      console.log('insert error:', error)
-
-      if (error) {
-          alert(error.message)
+        if (alreadyInCart) {
+          const updatedCart = cart.map(item =>
+            item.id === product.id
+            ? {...item, quantity: item.quantity + 1}
+            :item
+          )
+          await AsyncStorage.setItem('cart', JSON.stringify(updatedCart))
+          alert('Quantity Updated')
         } else {
-          alert('added to cart')
+           const updatedCart = [...cart, { 
+          id: product.id, 
+          name: product.name,
+          price: product.price,
+          category: product.category,
+          quantity: 1,
+        }]
+        await AsyncStorage.setItem('cart', JSON.stringify(updatedCart))
+        alert('Added to Cart')
         }
+
+      } catch (error) {
+        console.log('cart error:', error)
       }
+    }
+
 
      // add wishlist
      async function postWishlist(productID) {
@@ -107,7 +124,7 @@ const Products = ({navigation}) => {
                       <TouchableOpacity
                         style={styles.cartbutton}
                         onPress={() => {
-                          addtoCart(product.id)
+                          addtoCart(product)
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
                         <Text style={styles.cartbuttontext}>Add to Cart</Text>
                       </TouchableOpacity>

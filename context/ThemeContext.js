@@ -3,6 +3,8 @@ import { createContext, useContext, useState } from 'react';
 import { useBatteryLevel } from 'expo-battery'
 
 
+
+
 const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
@@ -21,17 +23,31 @@ export function ThemeProvider({ children }) {
     const batteryLevel = useBatteryLevel();
     console.log('Battery level:', batteryLevel);
     const isLowBattery = batteryLevel !== null &&
-                       batteryLevel !== -1 &&
-                       batteryLevel < 0.2;
+    batteryLevel !== -1 &&
+    batteryLevel < 0.2;
+    
+    const [selectedcurrency, setSelectedcurrency] = useState('USD')
+    const [selectedlanguage, setSelectedlanguage] = useState('en')
+
 
 return (
-    <ThemeContext.Provider value={{ 
-      theme, 
-      toggleTheme,
-      isLowBattery
-    }}>
+    <ThemeContext.Provider 
+      value={{ 
+        theme, 
+        toggleTheme,
+        isLowBattery,
+        selectedcurrency,
+        setSelectedcurrency,
+        selectedlanguage,
+        setSelectedlanguage,
+      }}>
       {children}
+      
+      
     </ThemeContext.Provider>
+    
+
+    
   )
 }
 

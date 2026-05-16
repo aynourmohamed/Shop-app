@@ -9,7 +9,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const Products = ({navigation}) => {
 
 
-    const { theme, isLowBattery} = useTheme()
+
+    const { theme, isLowBattery, selectedcurrency} = useTheme()
 
     const background = theme === 'dark' ? '#1a1a1a' : '#ffffff'
     const textColor  = theme === 'dark' ? '#ffffff' : '#2C1F1F'
@@ -114,7 +115,7 @@ const Products = ({navigation}) => {
                 {products.map((product) => (
                     <View key={product.id} style={styles.card}>
                     <Text style={styles.productname}>{product.name}</Text>
-                    <Text style={styles.productprice}>{product.price} USD</Text>
+                    <Text style={styles.productprice} >{product.price} {selectedcurrency}</Text>
                     <Text style={styles.productcategory}>{product.category}</Text>
                   
                     {/* buttons row */}

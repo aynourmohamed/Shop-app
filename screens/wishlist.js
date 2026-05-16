@@ -1,8 +1,9 @@
 import { View, TouchableOpacity, Image, Text, ScrollView, StyleSheet, TextInput, Alert } from "react-native";
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { supabase } from "../lib/supabase";
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
+import { useFocusEffect } from "@react-navigation/native";
 
 
 const Wishlist = () => {
@@ -14,21 +15,24 @@ const Wishlist = () => {
 
     const [wishlist, setWishlist] = useState([])
 
-    useEffect(() => {
+    useFocusEffect(
+      useCallback(() => {
         if (isLowBattery) {
           console.log('Battery low — skipping sync')
         } else {
           getWishlist()
         }
       }, [])
-
-
-
+    )
+    
     // fetch
       async function getWishlist() {
+        const {data: {user}} = await supabase.auth.getUser()
+
         const {data,error} = await supabase
         .from('Wishlist')
-        .select('*')
+        .select('*, Products(*)')
+        .eq('userid', user.id)
 
         console.log('data:', data)
         console.log('error:', error)
@@ -96,25 +100,18 @@ const Wishlist = () => {
             Your wishlist is empty
           </Text>
         ) : (
-                wishlist.map((item) => (
-                    <View key={item.id} style={styles.card}>
-                        <Text style={styles.itemname}>{item.name}</Text>
-                        <Text style={styles.itemprice}>{item.price} USD</Text>
-                        <Text style={styles.itemcategory}>{item.category}</Text>
-
-                       {/* remove button */}
-              <TouchableOpacity
-                style={styles.removebutton}
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-                  deleteWishlist(item.id)
-                }}
-              >
-                <Text style={styles.removebuttontext}>Remove</Text>
-              </TouchableOpacity>
-            </View>
-          ))
-        )}
+          wishlist.map((item) => (
+          <View key={item.id} style={styles.card}>
+            <Text style={[styles.productname, { color: textColor }]}>{item.Products?.name}</Text>
+            <Text style={styles.productprice}>{item.Products?.price} USD</Text>
+            <Text style={styles.productcategory}>{item.Products?.category}</Text>
+            
+            <TouchableOpacity style={styles.removebutton} onPress={() => deleteWishlist(item.id)}>
+              <Text style={styles.removebuttontext}>Remove</Text>
+            </TouchableOpacity>
+          </View>
+        ))
+  )}
       </View>
 
     </ScrollView>
@@ -192,6 +189,26 @@ const styles = StyleSheet.create({
       cartbuttontext: {
         color: 'black',
         fontSize: 13,
+      },
+
+      removebutton: {
+        backgroundColor: '#ffcccc',
+        padding: 8,
+        borderRadius: 20,
+        alignItems: 'center',
+        marginTop: 8,
+      },
+
+      removebuttontext: {
+        color: 'red',
+        fontSize: 13,
+        fontWeight: 'bold',
+      },
+      
+      emptytext: {
+        textAlign: 'center',
+        fontSize: 16,
+        marginTop: 50,
       },
     
 })

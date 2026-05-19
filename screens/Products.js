@@ -24,6 +24,35 @@ const Products = ({navigation}) => {
         }
       }, [])
 
+      // realtime stock subscription
+      useEffect(() => {
+        const subscription = supabase
+          .channel('products-realtime')
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'Products',
+            },
+            (payload) => {
+              console.log('stock updated:', payload.new)
+              setProducts(prev =>
+                prev.map(p =>
+                  p.id === payload.new.id ? payload.new : p
+                )
+              )
+            }
+          )
+          .subscribe((status) => {
+            console.log('🔴 Realtime status:', status) // ← ADD THIS
+          })
+      
+        return () => {
+          supabase.removeChannel(subscription)
+        }
+      }, [])
+      
       const networkState = useNetworkState()
       const CACHE_PATH = FileSystem.documentDirectory + 'products_cache.json'
       

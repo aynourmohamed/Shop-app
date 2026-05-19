@@ -4,6 +4,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ThemeProvider } from './context/ThemeContext';
 import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
+import { getStateFromPath } from '@react-navigation/native';
+
 
 import Welcome from './screens/Welcome';
 import Login from './screens/Login';
@@ -46,6 +48,39 @@ function RootStack() {
   );
 }
 
+const linking = {
+  prefixes: [
+    'shopapp://',
+    'exp://192.168.1.18:8081/--',
+    'exp://192.168.1.18:8081',   
+  ],
+  config: {
+    screens: {
+      Tabnavigator: {
+        screens: {
+          Home: 'home',
+          Products: 'products',
+          Cart: 'cart',
+          Wishlist: 'wishlist',
+          Profile: 'profile',
+        }
+      },
+      Welcome:      'welcome',
+      Login:        'login',
+      Register:     'register',
+      Checkout:     'checkout',
+      Barcodescanner: 'barcode',
+      Storelocator: 'stores',
+    }
+  },
+
+  getStateFromPath: (path, options) => {
+    console.log('🔗 Deep link path received:', path);
+    return getStateFromPath(path, options);
+  }
+}
+
+
 
 export default function App() {
 
@@ -57,7 +92,7 @@ export default function App() {
   return (
 
 <ThemeProvider>
-    <NavigationContainer>
+    <NavigationContainer  linking={linking}>
       <RootStack />
     </NavigationContainer>
   </ThemeProvider>

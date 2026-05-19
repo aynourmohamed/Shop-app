@@ -1,5 +1,6 @@
 {
   "expo": {
+    "scheme": "shopapp",
     "name": "Shop-app",
     "slug": "Shop-app",
     "version": "1.0.0",
@@ -16,14 +17,19 @@
       "supportsTablet": true,
       "config": {
         "googleMapsApiKey": "AIzaSyDEelfwEglviGAOks4DySeuM2loEE-byrI"
-      }
+      },
+      "bundleIdentifier": "com.anonymous.Shop-app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

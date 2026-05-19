@@ -1,8 +1,7 @@
 import {useColorScheme} from 'react-native';
 import { createContext, useContext, useState } from 'react';
 import { useBatteryLevel } from 'expo-battery'
-
-
+import { useLocales } from 'expo-localization';
 
 
 const ThemeContext = createContext();
@@ -29,6 +28,52 @@ export function ThemeProvider({ children }) {
     const [selectedcurrency, setSelectedcurrency] = useState('USD')
     const [selectedlanguage, setSelectedlanguage] = useState('en')
 
+    const translations ={
+      en: {
+        home:         'Home',
+      products:     'Products',
+      cart:         'Cart',
+      wishlist:     'Wishlist',
+      profile:      'Profile',
+      addtocart:    'Add to Cart',
+      scanbarcode:  'Scan Barcode',
+      search:       'Search',
+      logout:       'Logout',
+      appearance:   'Appearance',
+      lightmode:    '☀️ Switch to Light Mode',
+      darkmode:     '🌙 Switch to Dark Mode',
+      devicelocale: 'Device Locale',
+      language:     'Language',
+      currency:     'Currency',
+      prefcurrency: 'Preferred Currency',
+      preflanguage: 'Preferred Language',
+      },
+
+      fr: {
+        home:         'Accueil',
+        products:     'Produits',
+        cart:         'Panier',
+        wishlist:     'Favoris',
+        profile:      'Profil',
+        addtocart:    'Ajouter au panier',
+        scanbarcode:  'Scanner le code',
+        search:       'Rechercher',
+        logout:       'Déconnexion',
+        appearance:   'Apparence',
+        lightmode:    '☀️ Passer en mode clair',
+        darkmode:     '🌙 Passer en mode sombre',
+        devicelocale: 'Langue de l\'appareil',
+        language:     'Langue',
+        currency:     'Devise',
+        prefcurrency: 'Devise préférée',
+        preflanguage: 'Langue préférée',
+      },
+    }
+
+    const langcode= selectedlanguage.split('-')[0]
+    const t = translations[langcode] || translations['en']
+
+
 
 return (
     <ThemeContext.Provider 
@@ -40,6 +85,7 @@ return (
         setSelectedcurrency,
         selectedlanguage,
         setSelectedlanguage,
+        t,
       }}>
       {children}
       

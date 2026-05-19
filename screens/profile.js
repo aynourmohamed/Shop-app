@@ -1,8 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { useLocales } from 'expo-localization';
-import { useState } from 'react';
-import { supabase } from '../lib/supabase';
+
 
   const currencies = [
     { code: 'USD', symbol: '$', label: 'US Dollar' },
@@ -22,7 +21,7 @@ import { supabase } from '../lib/supabase';
 
 
      // get theme and toggle from context
-     const { theme, toggleTheme, selectedcurrency, setSelectedcurrency, selectedlanguage, setSelectedlanguage } = useTheme()
+     const { theme, toggleTheme, selectedcurrency, setSelectedcurrency, selectedlanguage, setSelectedlanguage, t } = useTheme()
 
      const isDark = theme === 'dark'
 
@@ -40,6 +39,7 @@ import { supabase } from '../lib/supabase';
 
 
   async function handleLogout() {
+    const {supabase} =await import('../lib/supabase')
     await supabase.auth.signOut()
   }
   
@@ -54,20 +54,20 @@ import { supabase } from '../lib/supabase';
       {/* device locale info */}
       <View style={[styles.card, { backgroundColor: cardBg }]}>
         <Text style={[styles.sectiontitle, { color: textColor }]}>
-          Device Locale
+        {t.devicelocale}
         </Text>
         <Text style={[styles.infotext, { color: textColor }]}>
-          Language: {devicelanguage.toUpperCase()}
+        {t.language}: {selectedlanguage.toUpperCase()}
         </Text>
         <Text style={[styles.infotext, { color: textColor }]}>
-          Currency: {devicecurrency}
+        {t.currency}: {selectedcurrency}
         </Text>
       </View>
 
       {/* currency selector */}
       <View style={[styles.card, { backgroundColor: cardBg }]}>
         <Text style={[styles.sectiontitle, { color: textColor }]}>
-          Preferred Currency
+        {t.prefcurrency}
         </Text>
         {currencies.map((currency) => (
           <TouchableOpacity
@@ -92,7 +92,7 @@ import { supabase } from '../lib/supabase';
       {/* language selector */}
       <View style={[styles.card, { backgroundColor: cardBg }]}>
         <Text style={[styles.sectiontitle, { color: textColor }]}>
-          Preferred Language
+          {t.preflanguage}
         </Text>
         {languages.map((language) => (
           <TouchableOpacity

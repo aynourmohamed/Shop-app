@@ -47,7 +47,7 @@ const Orders = () => {
         .from('Orders')
         .select('*')
         .eq('userid', user.id)
-        .order('orderedat', {ascending: false})
+        .order('created_at', {ascending: false})
         .range(from, to)
 
         console.log('data:', data)
@@ -115,7 +115,7 @@ const Orders = () => {
             <View style={styles.detailrow}>
               <Text style={[styles.detaillabel, { color: textColor }]}>Date:</Text>
               <Text style={[styles.detailvalue, { color: textColor }]}>
-                {new Date(selectedorder.orderedat).toLocaleDateString()}
+                {new Date(selectedorder.created_at).toLocaleDateString()}
               </Text>
             </View>
   
@@ -219,12 +219,14 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
   },
+
   logo: {
     width: 150,
     height: 100,
     alignSelf: 'center',
     marginTop: 20,
   },
+
   title: {
     fontSize: 22,
     fontWeight: 'bold',
@@ -232,47 +234,57 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 5,
   },
+
   ordersbox: {
     padding: 15,
   },
+
   emptytext: {
     textAlign: 'center',
     fontSize: 16,
     marginTop: 50,
   },
+
   card: {
     borderRadius: 10,
     padding: 15,
     marginBottom: 15,
   },
+
   cardrow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 8,
   },
+
   orderId: {
     fontSize: 16,
     fontWeight: 'bold',
   },
+
   statusbadge: {
     fontSize: 14,
     fontWeight: 'bold',
   },
+
   total: {
     fontSize: 14,
     color: '#c2b5be',
     marginBottom: 4,
   },
+
   date: {
     fontSize: 12,
     color: 'gray',
     marginBottom: 4,
   },
+
   taptext: {
     fontSize: 12,
     color: '#c2b5be',
     marginTop: 4,
   },
+
   loadmorebutton: {
     backgroundColor: '#e1d8cf',
     padding: 12,
@@ -281,53 +293,64 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 20,
   },
+
   loadmoretext: {
     fontWeight: 'bold',
     color: '#2C1F1F',
   },
+
   nomoretext: {
     textAlign: 'center',
     fontSize: 14,
     marginTop: 10,
     marginBottom: 20,
   },
+
   backbutton: {
     padding: 15,
     paddingTop: 50,
   },
+
   backtext: {
     fontSize: 16,
     color: '#c2b5be',
     fontWeight: 'bold',
   },
+
   detailcard: {
     margin: 15,
     borderRadius: 10,
     padding: 20,
   },
+
   detailtitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
   },
+
   detailrow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 10,
   },
+
   detaillabel: {
     fontSize: 15,
     fontWeight: 'bold',
   },
+
   detailvalue: {
     fontSize: 15,
   },
+
   itemstitle: {
     fontSize: 16,
     fontWeight: 'bold',
     marginTop: 15,
     marginBottom: 10,
   },
+
   itemrow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -335,12 +358,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
+
   itemname: {
     fontSize: 14,
     fontWeight: 'bold',
   },
+
   itemprice: {
     fontSize: 14,
     color: '#c2b5be',
   },
+
+
 })

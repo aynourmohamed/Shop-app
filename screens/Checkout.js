@@ -7,6 +7,8 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as MediaLibrary from 'expo-media-library';
 import { useTheme } from '../context/ThemeContext'
+import * as Haptics from 'expo-haptics'  
+
 
 
 const Checkout = ({navigation}) => {
@@ -137,6 +139,9 @@ const Checkout = ({navigation}) => {
 
         await generateAndSavePDF(cartItems, total, data?.id || 'N/A')
 
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+
+
         Alert.alert('Success', 'Checkout completed!');
     }
 
@@ -226,27 +231,32 @@ const Checkout = ({navigation}) => {
       padding: 20,
       paddingTop: 60,
     },
+
     title: {
       fontSize: 24,
       fontWeight: 'bold',
       marginBottom: 20,
     },
+
     section: {
       fontSize: 18,
       fontWeight: 'bold',
       marginTop: 20,
       marginBottom: 10,
     },
+
     securetext: {
       fontSize: 13,
       color: 'green',
       marginBottom: 10,
     },
+
     label: {
       fontSize: 15,
       marginBottom: 6,
       marginTop: 8,
     },
+
     input: {
       borderWidth: 1,
       borderColor: '#c2b5be',
@@ -255,14 +265,17 @@ const Checkout = ({navigation}) => {
       fontSize: 15,
       backgroundColor: '#f9f7f6',
     },
+
     row: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       gap: 10,
     },
+
     halfwidth: {
       flex: 1,
     },
+
     button: {
       backgroundColor: '#e1d8cf',
       padding: 15,
@@ -271,9 +284,12 @@ const Checkout = ({navigation}) => {
       marginTop: 30,
       marginBottom: 50,
     },
+
     buttontext: {
       fontSize: 16,
       fontWeight: 'bold',
       color: '#2C1F1F',
     },
+
+    
   })

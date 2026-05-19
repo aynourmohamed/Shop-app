@@ -1,78 +1,135 @@
 import { useState } from 'react';
-import { Alert, Button, Image, View, StyleSheet } from 'react-native';
+import { Alert, Image, View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system/legacy';
 import { supabase } from '../lib/supabase';
+import { useTheme } from '../context/ThemeContext';
 
-export default function ImagePickerExample() {
+export default function Imagepicker() {
   const [image, setImage] = useState(null);
-  const [uploading, setUploading] = useState(false)
+  const [uploading, setUploading] = useState(false);
 
-  const pickImage = async () => {
+  const { theme } = useTheme()
+  const background = theme === 'dark' ? '#1a1a1a' : '#ffffff'
+  const textColor  = theme === 'dark' ? '#ffffff' : '#2C1F1F'
 
-    // permission 
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (!permissionResult.granted) {
-      Alert.alert('Permission required', 'Permission to access the media library is required.');
+  // pick from gallery
+  async function pickFromGallery() {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Permission required', 'Allow access to your photo library.');
       return;
     }
 
-    // open photos
-    let result = await ImagePicker.launchImageLibraryAsync({
+    const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [4, 3],
-      quality: 1,
+      quality: 0.8,
     });
 
-    console.log(result);
-
-
-    // when user picks an image
     if (!result.canceled) {
-      const uri = result.assets[0].uri
-      setImage(uri) //show image on screen
-      await uploadimage(uri) //uplaod image to supabase
+      setImage(result.assets[0].uri);
+      await uploadImage(result.assets[0].uri);
     }
   }
 
-  // upload image to supabase
-  const uploadimage = async (uri) => {
-    setUploading(true)
-
-
-    const response = await fetch(uri)
-    const blob = await response.blob()
-
-    const filename = `product-${Date.now()}.jpg`
-
-    const { data, error } = await supabase
-      .storage
-      .from('productimage')
-      .upload(filename, {
-        upsert: false
-
-      })
-
-    if (error) {
-      Alert.alert('Upload failed', error.message)
-    } else {
-      Alert.alert('Success', 'Image uploaded successfully!')
-      console.log('uploaded to:', data.path)
+  // take photo with camera
+  async function pickFromCamera() {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Permission required', 'Allow access to your camera.');
+      return;
     }
 
-    setUploading(false)
-  };
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+      await uploadImage(result.assets[0].uri);
+    }
+  }
+
+  // decode base64 to Uint8Array for Supabase
+  function decode(base64) {
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes;
+  }
+
+  // upload to Supabase Storage using base64
+  async function uploadImage(uri) {
+    setUploading(true);
+    try {
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      const filename = `product-${Date.now()}.jpg`;
+
+      const { data, error } = await supabase.storage
+        .from('productimage')
+        .upload(filename, decode(base64), {
+          contentType: 'image/jpeg',
+          upsert: false,
+        });
+
+      if (error) {
+        Alert.alert('Upload failed', error.message)
+      } else {
+        const { data: urlData } = supabase.storage
+          .from('productimage')
+          .getPublicUrl(filename)
+        
+        console.log('public URL:', urlData.publicUrl)
+        Alert.alert('Success', 'Image uploaded successfully!')
+      }
+    } catch (e) {
+      Alert.alert('Error', e.message);
+      console.log('upload error:', e);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+
+
 
   return (
-    <View style={styles.container}>
-      <Button
-        title={uploading ? 'Uploading...' : 'Pick a product image'}
-        onPress={pickImage}
-      />
+    <View style={[styles.container, { backgroundColor: background }]}>
+      <Text style={[styles.title, { color: textColor }]}>Product Image Upload</Text>
+
       {image && (
         <Image source={{ uri: image }} style={styles.image} />
       )}
+
+      <TouchableOpacity
+        style={[syles.button, uploading && styles.buttonDisabled]}
+        onPress={pickFromGallery}
+        disabled={uploading}
+      >
+        <Text style={styles.buttontext}>
+          {uploading ? 'Uploading...' : '🖼️ Pick from Gallery'}
+        </Text>
+      </TouchableOpacity>
+
+
+      <TouchableOpacity
+        style={[styles.button, uploading && styles.buttonDisabled]}
+        onPress={pickFromCamera}
+        disabled={uploading}
+      >
+        <Text style={styles.buttontext}>
+          {uploading ? 'Uploading...' : '📷 Take a Photo'}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -82,11 +139,41 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 20,
   },
+
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 24,
+  },
+
   image: {
-    width: 200,
-    height: 200,
-    marginTop: 20,
-    borderRadius: 10,
+    width: 220,
+    height: 220,
+    marginBottom: 24,
+    borderRadius: 12,
   },
-})
+  
+  button: {
+    backgroundColor: '#e1d8cf',
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+    borderRadius: 12,
+    alignItems: 'center',
+    width: '80%',
+    marginBottom: 12,
+  },
+
+  buttonDisabled: {
+    opacity: 0.5,
+  },
+
+  buttontext: {
+    color: '#2C1F1F',
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+
+
+});

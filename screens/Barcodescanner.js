@@ -2,6 +2,8 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useState } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { supabase } from "../lib/supabase";
+import AsyncStorage from '@react-native-async-storage/async-storage'
+
 
 const Barcodescanner = () => {
 
@@ -48,6 +50,26 @@ const Barcodescanner = () => {
     }
   }
 
+  async function addtoCart(product) {
+    const existing = await AsyncStorage.getItem('cart')
+    const cart = existing ? JSON.parse(existing) : []
+    const alreadyInCart = cart.find(item => item.id === product.id)
+    if (alreadyInCart) {
+      const updated = cart.map(item =>
+        item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+      )
+      await AsyncStorage.setItem('cart', JSON.stringify(updated))
+    } else {
+      await AsyncStorage.setItem('cart', JSON.stringify([
+        ...cart,
+        { id: product.id, name: product.name, price: product.price, category: product.category, quantity: 1 }
+      ]))
+    }
+    alert('Added to Cart')
+    setScanned(false)
+    setProduct(null)
+  }
+
 
   function toggleCameraFacing() {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
@@ -81,9 +103,7 @@ const Barcodescanner = () => {
         </TouchableOpacity>
 
         {/* add to cart the scanned item */}
-        <TouchableOpacity style={styles.addtocartbutton} onPress={() => {
-            setScanned(false) 
-            setProduct(null) }}>
+        <TouchableOpacity style={styles.addtocartbutton} onPress={() => addtoCart(product)}>
           <Text style={styles.addtocarttext}>Add to Cart</Text>
         </TouchableOpacity>
       </View>

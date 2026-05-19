@@ -144,34 +144,41 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+
   map: {
     flex: 1,
   },
+
   center: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 16,
   },
+
   loadingtext: {
     fontSize: 16,
     marginTop: 10,
   },
+
   errortext: {
     fontSize: 16,
     textAlign: 'center',
     paddingHorizontal: 30,
   },
+
   retrybutton: {
     backgroundColor: '#e1d8cf',
     padding: 12,
     borderRadius: 10,
     marginTop: 10,
   },
+
   retrybuttontext: {
     fontWeight: 'bold',
     color: '#2C1F1F',
   },
+
   badge: {
     position: 'absolute',
     top: 50,
@@ -186,10 +193,12 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
+
   badgetext: {
     fontWeight: 'bold',
     color: '#2C1F1F',
   },
+
   locationbadge: {
     position: 'absolute',
     bottom: 30,
@@ -204,8 +213,10 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
+
   locationtext: {
     fontSize: 12,
     color: '#2C1F1F',
   },
+  
 })

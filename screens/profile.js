@@ -13,7 +13,7 @@ import { useLocales } from 'expo-localization';
 
   const languages = [
     { code: 'en', label: 'English' },
-    { code: 'sp', label: 'Spanish' },
+    { code: 'es', label: 'Spanish' },
     { code: 'fr', label: 'French' },
   ]
 
@@ -132,7 +132,11 @@ import { useLocales } from 'expo-localization';
       {/* logout */}
       <TouchableOpacity
         style={styles.logoutbutton}
-        onPress={handleLogout}
+        onPress={async () => {
+          const { supabase } = await import('../lib/supabase')
+          await supabase.auth.signOut()
+          navigation.navigate('Welcome')
+        }}
       >
         <Text style={styles.logouttext}>Logout</Text>
       </TouchableOpacity>
@@ -149,29 +153,35 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
   },
+
   header: {
     padding: 20,
     paddingTop: 60,
   },
+
   title: {
     fontSize: 28,
     fontWeight: 'bold',
   },
+
   card: {
     margin: 15,
     marginTop: 5,
     borderRadius: 12,
     padding: 15,
   },
+
   sectiontitle: {
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 12,
   },
+
   infotext: {
     fontSize: 14,
     marginBottom: 6,
   },
+
   optionbutton: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -180,15 +190,18 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 8,
   },
+
   optiontext: {
     fontSize: 14,
     fontWeight: '500',
   },
+
   checkmark: {
     color: 'white',
     fontWeight: 'bold',
     fontSize: 16,
   },
+
   logoutbutton: {
     backgroundColor: '#ffcccc',
     margin: 15,
@@ -197,10 +210,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 40,
   },
+
   logouttext: {
     color: 'red',
     fontSize: 16,
     fontWeight: 'bold',
   },
+  
 })
   

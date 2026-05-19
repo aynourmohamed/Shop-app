@@ -11,9 +11,17 @@ const Register = ({navigation}) => {
     const[confirmpassword, setConfrimpassword]= useState('')
 
 async function Signup() {
+  if (password !== confirmpassword) {
+    alert('Passwords do not match')
+    return
+  }
   const { data, error } = await supabase.auth.signUp({
     email: email,
     password: password,
+    options: {
+      data: { first_name: firstname, last_name: lastname }
+
+      }
   })
 
 if (error) {

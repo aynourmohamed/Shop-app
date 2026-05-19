@@ -57,7 +57,7 @@ const Home = () => {
                     <Image source={require('../assets/images/oud 3 no bg.png')} 
                     style={styles.productimage} />
                     <Text style={styles.cardtext}>Oud Scented Candle</Text>
-                    <TouchableOpacity style={styles.cartbutton}>
+                    <TouchableOpacity style={styles.cartbutton} onPress={() => navigation.navigate('Products')}>
                         <Text style={styles.cartbuttontext}>Add to Cart</Text>
                     </TouchableOpacity>
                 </View>
@@ -66,7 +66,7 @@ const Home = () => {
                     <Image source={require('../assets/images/aroma 2 no bg.png')} 
                     style={styles.productimage}/>
                     <Text style={styles.cardtext}>Aromatherapy Candle</Text>
-                    <TouchableOpacity style={styles.cartbutton}>
+                    <TouchableOpacity style={styles.cartbutton} onPress={() => navigation.navigate('Products')}>
                         <Text style={styles.cartbuttontext}>Add to Cart</Text>
                     </TouchableOpacity>
                 </View>
@@ -75,7 +75,7 @@ const Home = () => {
                     <Image source={require('../assets/images/Candle kit no bg.png')} 
                     style={styles.productimage}/>
                     <Text style={styles.cardtext}>Candle Making Kit</Text>
-                    <TouchableOpacity style={styles.cartbutton}>
+                    <TouchableOpacity style={styles.cartbutton} onPress={() => navigation.navigate('Products')}>
                         <Text style={styles.cartbuttontext}>Add to Cart</Text>
                     </TouchableOpacity>
                 </View>

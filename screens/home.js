@@ -90,6 +90,14 @@ const Home = () => {
                     <Text style={styles.imagepickerbuttontext}>Upload or Take a Photo</Text>
                 </TouchableOpacity>  
 
+                {/* store locator button */}
+<TouchableOpacity 
+  style={styles.storebutton}
+  onPress={() => navigation.navigate('Storelocator')}
+>
+  <Text style={styles.storebuttontext}>📍 Find Nearest Store</Text>
+</TouchableOpacity>
+
             </View>
         </ScrollView>
     )
@@ -240,6 +248,20 @@ const styles= StyleSheet.create({
       
       offlinetext: {
         color: 'white',
+        fontWeight: 'bold',
+        fontSize: 14,
+      },
+
+      storebutton: {
+        backgroundColor: '#e1d8cf',
+        padding: 12,
+        borderRadius: 20,
+        alignItems: 'center',
+        width: '60%',
+        marginTop: 10,
+      },
+      storebuttontext: {
+        color: '#2C1F1F',
         fontWeight: 'bold',
         fontSize: 14,
       },

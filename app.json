@@ -13,7 +13,10 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "AIzaSyDEelfwEglviGAOks4DySeuM2loEE-byrI"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -42,7 +45,6 @@
           "barcodeScannerEnabled": true
         }
       ],
-      
       "expo-localization"
     ]
   }

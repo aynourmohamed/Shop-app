@@ -4,11 +4,11 @@ import { supabase } from "../lib/supabase";
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as FileSystem from 'expo-file-system/legacy'
+import { useNetworkState } from 'expo-network'
 
 
 const Products = ({navigation}) => {
-
-
 
     const { theme, isLowBattery, selectedcurrency} = useTheme()
 
@@ -24,20 +24,55 @@ const Products = ({navigation}) => {
         }
       }, [])
 
-    async function getProducts() {
-        const {data,error} = await supabase
-        .from('Products')
-        .select('*')
-
+      const networkState = useNetworkState()
+      const CACHE_PATH = FileSystem.documentDirectory + 'products_cache.json'
+      
+      async function getProducts() {
+        const isConnected = networkState.isConnected
+      
+        if (!isConnected) {
+          // load from cache when offline
+          try {
+            const fileInfo = await FileSystem.getInfoAsync(CACHE_PATH)
+            if (fileInfo.exists) {
+              const cached = await FileSystem.readAsStringAsync(CACHE_PATH)
+              setProducts(JSON.parse(cached))
+              console.log('loaded from cache — offline mode')
+            } else {
+              alert('No cached products available offline')
+            }
+          } catch (e) {
+            console.log('cache read error:', e)
+          }
+          return
+        }
+      
+        // online — fetch from Supabase
+        if (isLowBattery) {
+          console.log('Battery low — skipping sync')
+          return
+        }
+      
+        const { data, error } = await supabase
+          .from('Products')
+          .select('*')
+      
         console.log('data:', data)
         console.log('error:', error)
-
+      
         if (error) {
-            alert(error.message)
+          alert(error.message)
         } else {
-            setProducts(data)
+          setProducts(data)
+          // save to cache for offline use
+          try {
+            await FileSystem.writeAsStringAsync(CACHE_PATH, JSON.stringify(data))
+            console.log('products cached for offline use')
+          } catch (e) {
+            console.log('cache write error:', e)
+          }
         }
-    }
+      }
 
     // add to cart
     async function addtoCart(product) {

@@ -49,7 +49,7 @@ const Products = ({navigation}) => {
             }
           )
           .subscribe((status) => {
-            console.log('🔴 Realtime status:', status) // ← ADD THIS
+            console.log('🔴 Realtime status:', status) 
           })
       
         return () => {
@@ -76,9 +76,7 @@ const Products = ({navigation}) => {
         }
       }
 
-      useEffect(() => {
-        getProducts()
-      }, [])
+    
 
     // add to cart
     async function addtoCart(product) {

@@ -98,8 +98,8 @@ const Storelocator = () => {
           longitudeDelta: 5,
         }}
         provider={PROVIDER_GOOGLE}
-        showsUserLocation={true}      // ← shows blue dot for user
-        showsMyLocationButton={true}  // ← button to center on user
+        showsUserLocation={true}      
+        showsMyLocationButton={true}  
       >
 
         {/* store markers */}

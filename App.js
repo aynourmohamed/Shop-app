@@ -59,10 +59,12 @@ const linking = {
     'shopapp://',
     'exp://192.168.1.18:8081/--',
     'exp://192.168.1.18:8081',   
+    'exp://172.20.10.11:8081/--'
   ],
   config: {
     screens: {
       Tabnavigator: {
+        path: '',  
         screens: {
           Home: 'home',
           Products: 'products',
@@ -93,7 +95,7 @@ export default function App() {
   useEffect(() => {
     Notifications.requestPermissionsAsync()
 
-    // listen for auth changes — handles logout
+    // handles logout
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT' || !session) {
         navigationRef.current?.navigate('Welcome')
@@ -109,12 +111,11 @@ export default function App() {
         ref={navigationRef}
         linking={linking}
         onReady={() => {
-          // onReady fires AFTER navigation is mounted — safe to navigate here
           supabase.auth.getSession().then(({ data: { session } }) => {
             if (session) {
               navigationRef.current?.navigate('Tabnavigator')
             }
-            // if no session, stay on Welcome (it's the first screen)
+            // if no session, stay on welcome 
           })
         }}
       >

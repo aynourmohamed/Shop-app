@@ -1,6 +1,6 @@
 import {useColorScheme} from 'react-native';
-import { createContext, useContext, useState } from 'react';
-import { useBatteryLevel } from 'expo-battery'
+import { createContext, useContext, useState, useEffect} from 'react';
+import * as Battery from 'expo-battery';
 import { useLocales } from 'expo-localization';
 
 
@@ -19,11 +19,36 @@ export function ThemeProvider({ children }) {
         setTheme (theme === 'dark' ? 'light' : 'dark');
     }
 
-    const batteryLevel = useBatteryLevel();
+    const [batteryLevel, setBatteryLevel] = useState(1)
+
+    const [isLowBattery, setIsLowBattery] = useState(false)
     console.log('Battery level:', batteryLevel);
-    const isLowBattery = batteryLevel !== null &&
-    batteryLevel !== -1 &&
-    batteryLevel < 0.2;
+
+    useEffect(() => {
+      Battery.getBatteryLevelAsync().then(level => {
+        setBatteryLevel(level)
+        setIsLowBattery(level < 0.2)
+    })
+    
+
+    const subscription = Battery.addBatteryLevelListener(({ batteryLevel: level }) => {
+      console.log('Battery level changed:', Math.round(level * 100) + '%')
+      setBatteryLevel(level)
+
+      if (level < 0.2) {
+          setIsLowBattery(true)
+          console.log('Battery is low — background sync paused')
+      } else {
+          setIsLowBattery(false)
+          console.log('Battery is ok — sync resumed')
+      }
+  })
+
+  return () => {
+    subscription.remove()
+    console.log('Battery listener removed')
+}
+}, [])
     
     const [selectedcurrency, setSelectedcurrency] = useState('USD')
     const [selectedlanguage, setSelectedlanguage] = useState('en')
@@ -81,6 +106,7 @@ return (
         theme, 
         toggleTheme,
         isLowBattery,
+        batteryLevel,
         selectedcurrency,
         setSelectedcurrency,
         selectedlanguage,

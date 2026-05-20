@@ -13,12 +13,12 @@ const Barcodescanner = () => {
   const [product, setProduct] = useState(null)
 
   if (!permission) {
-    // Camera permissions are still loading.
+    // camera permissions are still loading
     return <View />;
   }
 
   if (!permission.granted) {
-    // Camera permissions are not granted yet.
+    // camera permissions are not granted yet
     return (
       <View style={styles.container}>
         <Text style={styles.message}>We need your permission to scan Barcode</Text>

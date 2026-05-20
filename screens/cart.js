@@ -120,18 +120,18 @@ const textColor  = theme === 'dark' ? '#ffffff' : '#2C1F1F'
 
 
             {/* checkout */}
-            {cart.length > 0 && (
-  <>
-    <Text style={[styles.totaltext, { color: textColor }]}>
-      Total: {cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)} USD
-    </Text>
+        {cart.length > 0 && (
+          <>
+            <Text style={[styles.totaltext, { color: textColor }]}>
+              Total: {cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)} USD
+            </Text>
 
-    <TouchableOpacity
-      style={styles.checkoutbutton}
-      onPress={() => navigation.navigate('Checkout')}
-    >
-      <Text style={styles.checkoutbuttontext}>Checkout</Text>
-    </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.checkoutbutton}
+              onPress={() => navigation.navigate('Checkout')}
+            >
+              <Text style={styles.checkoutbuttontext}>Checkout</Text>
+            </TouchableOpacity>
   </>
 )}
             </View>

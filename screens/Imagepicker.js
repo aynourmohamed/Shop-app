@@ -111,7 +111,7 @@ export default function Imagepicker() {
       )}
 
       <TouchableOpacity
-        style={[syles.button, uploading && styles.buttonDisabled]}
+        style={[styles.button, uploading && styles.buttonDisabled]}
         onPress={pickFromGallery}
         disabled={uploading}
       >

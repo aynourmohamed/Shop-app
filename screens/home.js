@@ -98,6 +98,14 @@ const Home = () => {
                     <Text style={styles.storebuttontext}>📍 Find Nearest Store</Text>
                 </TouchableOpacity>
 
+                 {/* order history button */}
+                 <TouchableOpacity
+                    style={styles.storebutton}
+                    onPress={() => navigation.navigate('Orderhistory')}
+                >
+                    <Text style={styles.storebuttontext}>order History</Text>
+                </TouchableOpacity>
+
             </View>
         </ScrollView>
     )

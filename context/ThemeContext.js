@@ -19,6 +19,8 @@ export function ThemeProvider({ children }) {
         setTheme (theme === 'dark' ? 'light' : 'dark');
     }
 
+    
+
     const [batteryLevel, setBatteryLevel] = useState(1)
 
     const [isLowBattery, setIsLowBattery] = useState(false)

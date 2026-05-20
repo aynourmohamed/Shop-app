@@ -28,34 +28,39 @@ const Products = ({navigation}) => {
         }
       }, [])
 
-      // realtime stock subscription
-      useEffect(() => {
-        const subscription = supabase
-          .channel('products-realtime')
-          .on(
-            'postgres_changes',
-            {
-              event: 'UPDATE',
-              schema: 'public',
-              table: 'Products',
-            },
-            (payload) => {
-              console.log('stock updated:', payload.new)
-              setProducts(prev =>
-                prev.map(p =>
-                  p.id === payload.new.id ? payload.new : p
-                )
-              )
-            }
-          )
-          .subscribe((status) => {
-            console.log('🔴 Realtime status:', status) 
-          })
-      
-        return () => {
-          supabase.removeChannel(subscription)
-        }
-      }, [])
+      // realtime subscription
+  useEffect(() => {
+    let subscription
+
+    async function init() {
+      if (!isLowBattery) {
+        await getProducts()
+      }
+
+      subscription = supabase
+        .channel('products-realtime')
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'Products' },
+          (payload) => {
+            console.log('Stock updated:', payload.new)
+
+            setProducts(prev =>
+              prev.map(p => p.id === payload.new.id ? payload.new : p)
+            )
+          }
+        )
+        .subscribe((status) => {
+          console.log('Realtime status:', status)
+        })
+    }
+
+    init()
+
+    return () => {
+      if (subscription) supabase.removeChannel(subscription)
+    }
+  }, []) 
       
     
       
@@ -156,17 +161,31 @@ const Products = ({navigation}) => {
                     <Text style={styles.productname}>{product.name}</Text>
                     <Text style={styles.productprice} >{product.price} {selectedcurrency}</Text>
                     <Text style={styles.productcategory}>{product.category}</Text>
+
+
+                    {/* added */}
+
+                    <Text style={[
+                      styles.stocktext,
+                      { color: product.stock === 0 ? '#e74c3c' : product.stock < 5 ? '#e67e22' : '#27ae60' }
+                    ]}>
+                      {product.stock === 0 ? 'Out of Stock' : `In Stock: ${product.stock}`}
+                    </Text>
                   
                     {/* buttons row */}
                     <View style={styles.buttonrow}>
                   
                       {/* add to cart */}
                       <TouchableOpacity
-                        style={styles.cartbutton}
+                        style={[styles.cartbutton, product.stock === 0 && { opacity: 0.4 }]}
+                        disabled={product.stock === 0}
                         onPress={() => {
                           addtoCart(product)
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
-                        <Text style={styles.cartbuttontext}>Add to Cart</Text>
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+                        }}>
+                        <Text style={styles.cartbuttontext}>
+                          {product.stock === 0 ? 'Unavailable' : 'Add to Cart'}
+                        </Text>
                       </TouchableOpacity>
                   
                       {/* love button */}

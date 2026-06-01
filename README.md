@@ -2,9 +2,9 @@ Luxe Éclat shop app
 A mobile shopping app for candles
 
 Techs used: 
-react native
-supabase
-react navigation
+react native, 
+supabase,
+react navigation,
 asyncstorage
 
 Features:

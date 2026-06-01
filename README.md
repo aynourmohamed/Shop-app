@@ -1,13 +1,14 @@
-Luxe Éclat shop app
+**Luxe Éclat shop app**
 A mobile shopping app for candles
 
-Techs used: 
+**Techs used:**
 react native
 supabase
 react navigation
 asyncstorage
 
-Features:
+
+**Features**
 Feature 1  — Login and register with Supabase Auth
 Feature 2  — Products fetched from Supabase with filters
 Feature 3  — Upload product photos to Supabase Storage

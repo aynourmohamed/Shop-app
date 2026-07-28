@@ -4,12 +4,13 @@ import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 import * as Location from 'expo-location'
 import { supabase } from '../lib/supabase'
 import { useTheme } from '../context/ThemeContext'
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 const Storelocator = () => {
 
   const { theme } = useTheme()
-  const background = theme === 'dark' ? '#1a1a1a' : '#ffffff'
-  const textColor  = theme === 'dark' ? '#ffffff' : '#2C1F1F'
+  const background = theme === 'dark' ? '#161512' : '#f9f7f6'
+  const textColor  = theme === 'dark' ? '#F5EDE9' : '#2C1F1F'
 
   const [location, setLocation] = useState(null)
   const [stores, setStores] = useState([])
@@ -63,7 +64,7 @@ const Storelocator = () => {
   if (loading) {
     return (
       <View style={[styles.center, { backgroundColor: background }]}>
-        <ActivityIndicator size="large" color="#C17C74" />
+        <ActivityIndicator size="large" color="#c2b5be" />
         <Text style={[styles.loadingtext, { color: textColor }]}>
           Getting your location...
         </Text>
@@ -74,6 +75,7 @@ const Storelocator = () => {
   if (errorMsg) {
     return (
       <View style={[styles.center, { backgroundColor: background }]}>
+        <Ionicons name="location-outline" size={40} color="#8A7A82" />
         <Text style={[styles.errortext, { color: textColor }]}>{errorMsg}</Text>
         <TouchableOpacity
           style={styles.retrybutton}
@@ -98,8 +100,8 @@ const Storelocator = () => {
           longitudeDelta: 5,
         }}
         provider={PROVIDER_GOOGLE}
-        showsUserLocation={true}      
-        showsMyLocationButton={true}  
+        showsUserLocation={true}
+        showsMyLocationButton={true}
       >
 
         {/* store markers */}
@@ -112,7 +114,7 @@ const Storelocator = () => {
             }}
             title={store.name}
             description={store.address}
-            pinColor="#C17C74"
+            pinColor="#c2b5be"
           />
         ))}
 
@@ -120,8 +122,9 @@ const Storelocator = () => {
 
       {/* info badge */}
       <View style={styles.badge}>
+        <Ionicons name="location" size={14} color="#c2b5be" />
         <Text style={styles.badgetext}>
-          📍 {stores.length} stores found
+          {stores.length} stores found
         </Text>
       </View>
 
@@ -154,6 +157,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 16,
+    paddingHorizontal: 30,
   },
 
   loadingtext: {
@@ -164,38 +168,41 @@ const styles = StyleSheet.create({
   errortext: {
     fontSize: 16,
     textAlign: 'center',
-    paddingHorizontal: 30,
   },
 
   retrybutton: {
-    backgroundColor: '#e1d8cf',
-    padding: 12,
-    borderRadius: 10,
-    marginTop: 10,
+    backgroundColor: '#c2b5be',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 20,
+    marginTop: 6,
   },
 
   retrybuttontext: {
-    fontWeight: 'bold',
-    color: '#2C1F1F',
+    fontWeight: '700',
+    color: 'white',
   },
 
   badge: {
     position: 'absolute',
     top: 50,
     alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     backgroundColor: 'white',
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
     elevation: 5,
   },
 
   badgetext: {
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: '#2C1F1F',
   },
 
@@ -209,8 +216,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
     elevation: 5,
   },
 
@@ -218,5 +225,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#2C1F1F',
   },
-  
+
 })

@@ -4,7 +4,6 @@ const Welcome = ({navigation}) => {
 
     return(
             <View style={styles.container}>
-                
 
                 {/* logo */}
                 <Image source={require('../assets/images/logo no bg.png')}
@@ -13,7 +12,8 @@ const Welcome = ({navigation}) => {
                 />
 
                 {/* title */}
-                <Text style={styles.title}>Welcome</Text>
+                <Text style={styles.title}>Luxe Éclat</Text>
+                <Text style={styles.subtitle}>Candles That Care for You</Text>
 
                 {/* login button */}
                 <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Login')} >
@@ -21,8 +21,8 @@ const Welcome = ({navigation}) => {
                 </TouchableOpacity>
 
                 {/* register button */}
-                <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Register')}>
-                    <Text style={styles.buttontext}>Register</Text>
+                <TouchableOpacity style={styles.secondarybutton} onPress={() => navigation.navigate('Register')}>
+                    <Text style={styles.secondarybuttontext}>Create an Account</Text>
                 </TouchableOpacity>
 
             </View>
@@ -33,34 +33,61 @@ const styles = StyleSheet.create({
     container: {
       flex: 1,
       alignItems: 'center',
-      justifyContent: 'flex-start',
-      paddingTop: 100,
+      justifyContent: 'center',
+      backgroundColor: '#f9f7f6',
+      paddingHorizontal: 32,
     },
 
     logo: {
-        width: 400,
-        height: 300,        
-        marginBottom: 50,
+        width: 220,
+        height: 160,
+        marginBottom: 12,
     },
 
     title: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: 'black',
-        marginTop: 10,
+        fontSize: 28,
+        fontWeight: '700',
+        color: '#2C1F1F',
+        letterSpacing: 0.5,
+    },
+
+    subtitle: {
+        fontSize: 14,
+        color: '#8A7A82',
+        marginTop: 6,
+        marginBottom: 48,
     },
 
     button: {
-        backgroundColor: '#e1d8cf',
-        padding: 9,
+        backgroundColor: '#c2b5be',
+        paddingVertical: 15,
         alignItems: 'center',
-        width: '50%',
-        marginTop: 15,
+        width: '100%',
+        borderRadius: 14,
+        marginTop: 8,
     },
 
     buttontext: {
-        color: 'black',
-        fontSize: 20,
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '700',
+    },
+
+    secondarybutton: {
+        backgroundColor: 'transparent',
+        borderWidth: 1.5,
+        borderColor: '#c2b5be',
+        paddingVertical: 15,
+        alignItems: 'center',
+        width: '100%',
+        borderRadius: 14,
+        marginTop: 14,
+    },
+
+    secondarybuttontext: {
+        color: '#c2b5be',
+        fontSize: 16,
+        fontWeight: '700',
     },
   })
 

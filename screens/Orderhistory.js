@@ -12,10 +12,10 @@ const Orders = () => {
 
     const { theme, isLowBattery} = useTheme()
 
-    const background = theme === 'dark' ? '#161512' : '#FFFCFA'
+    const background = theme === 'dark' ? '#161512' : '#f9f7f6'
     const textColor  = theme === 'dark' ? '#F5EDE9' : '#2C1F1F'
     const cardBg = theme === 'dark' ? '#252220' : '#FFFFFF'
-    const mutedText = theme === 'dark' ? '#B8A79E' : '#8C7A72'
+    const mutedText = theme === 'dark' ? '#B3A0A8' : '#8A7A82'
 
     const [orders, setOrders] = useState([])
     const [page, setPage] = useState(0)
@@ -96,7 +96,7 @@ const Orders = () => {
             style={styles.backbutton}
             onPress={() => setSelectedorder(null)}
           >
-            <Ionicons name="arrow-back" size={18} color="#C17C74" />
+            <Ionicons name="arrow-back" size={18} color="#c2b5be" />
             <Text style={styles.backtext}>Back to Orders</Text>
           </TouchableOpacity>
 
@@ -132,7 +132,7 @@ const Orders = () => {
               <Text style={{ color: mutedText }}>No items</Text>
             ) : (
               items.map((item, index) => (
-                <View key={index} style={[styles.itemrow, { borderBottomColor: theme === 'dark' ? '#3a3632' : '#F1E7E2' }]}>
+                <View key={index} style={[styles.itemrow, { borderBottomColor: theme === 'dark' ? '#3a3632' : '#EDE3E8' }]}>
                   <Text style={[styles.itemname, { color: textColor }]}>
                     {item.name}
                   </Text>
@@ -189,7 +189,7 @@ const Orders = () => {
               </Text>
               <View style={styles.taprow}>
                 <Text style={styles.taptext}>View details</Text>
-                <Ionicons name="chevron-forward" size={14} color="#C17C74" />
+                <Ionicons name="chevron-forward" size={14} color="#c2b5be" />
               </View>
             </TouchableOpacity>
           )})
@@ -199,7 +199,7 @@ const Orders = () => {
         {loading && (
           <ActivityIndicator
             size="large"
-            color="#C17C74"
+            color="#c2b5be"
             style={{ marginTop: 20 }}
           />
         )}
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#F1E7E2',
+    borderColor: '#EDE3E8',
   },
 
   cardrow: {
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
 
   total: {
     fontSize: 15,
-    color: '#C17C74',
+    color: '#c2b5be',
     fontWeight: '700',
     marginBottom: 4,
   },
@@ -312,12 +312,12 @@ const styles = StyleSheet.create({
 
   taptext: {
     fontSize: 12,
-    color: '#C17C74',
+    color: '#c2b5be',
     fontWeight: '600',
   },
 
   loadmorebutton: {
-    backgroundColor: '#F3E6E1',
+    backgroundColor: '#EDE6EA',
     padding: 14,
     borderRadius: 14,
     alignItems: 'center',
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
 
   backtext: {
     fontSize: 16,
-    color: '#C17C74',
+    color: '#c2b5be',
     fontWeight: '700',
   },
 
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#F1E7E2',
+    borderColor: '#EDE3E8',
   },
 
   detailtitle: {
@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
 
   itemprice: {
     fontSize: 14,
-    color: '#C17C74',
+    color: '#c2b5be',
     fontWeight: '600',
   },
 

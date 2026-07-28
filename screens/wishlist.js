@@ -11,10 +11,10 @@ const Wishlist = () => {
 
 
     const { theme, isLowBattery} = useTheme()
-    const background = theme === 'dark' ? '#161512' : '#FFFCFA'
+    const background = theme === 'dark' ? '#161512' : '#f9f7f6'
     const textColor  = theme === 'dark' ? '#F5EDE9' : '#2C1F1F'
     const cardBg = theme === 'dark' ? '#252220' : '#FFFFFF'
-    const mutedText = theme === 'dark' ? '#B8A79E' : '#8C7A72'
+    const mutedText = theme === 'dark' ? '#B3A0A8' : '#8A7A82'
 
     const [wishlist, setWishlist] = useState([])
 
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         padding: 16,
         borderWidth: 1,
-        borderColor: '#F1E7E2',
+        borderColor: '#EDE3E8',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -201,14 +201,14 @@ const styles = StyleSheet.create({
 
       productprice: {
         fontSize: 14,
-        color: '#C17C74',
+        color: '#c2b5be',
         fontWeight: '600',
         marginTop: 2,
       },
 
       productcategory: {
         fontSize: 12,
-        color: '#8C7A72',
+        color: '#8A7A82',
         textTransform: 'uppercase',
         letterSpacing: 0.4,
       },

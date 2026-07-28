@@ -7,15 +7,18 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as MediaLibrary from 'expo-media-library';
 import { useTheme } from '../context/ThemeContext'
-import * as Haptics from 'expo-haptics'  
+import * as Haptics from 'expo-haptics'
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 
 
 const Checkout = ({navigation}) => {
 
   const { theme } = useTheme()
-  const background = theme === 'dark' ? '#1a1a1a' : '#ffffff'
-  const textColor  = theme === 'dark' ? '#ffffff' : '#2C1F1F'
+  const background = theme === 'dark' ? '#161512' : '#f9f7f6'
+  const textColor  = theme === 'dark' ? '#F5EDE9' : '#2C1F1F'
+  const cardBg = theme === 'dark' ? '#252220' : '#FFFFFF'
+  const mutedText = theme === 'dark' ? '#B3A0A8' : '#8A7A82'
 
     const [name, setName] = useState('');
     const [address, setAddress] = useState('');
@@ -46,7 +49,7 @@ const Checkout = ({navigation}) => {
       const html = `
       <html>
         <body style="font-family:Arial;padding:30px;color:#2C1F1F">
-          <h1 style="color:#C17C74">Luxe Éclat</h1>
+          <h1 style="color:#c2b5be">Luxe Éclat</h1>
           <h2>Invoice / Receipt</h2>
           <hr/>
           <p><strong>Order ID:</strong> ${orderId}</p>
@@ -120,7 +123,7 @@ const Checkout = ({navigation}) => {
         .insert({
           userid: user.id,
           items: JSON.stringify(cartItems),
-          total: total, 
+          total: total,
           status: 'pending',
         })
         .select()
@@ -135,7 +138,7 @@ const Checkout = ({navigation}) => {
 
 
         await sendorderNotifications();
-        
+
 
         await generateAndSavePDF(cartItems, total, data?.id || 'N/A')
 
@@ -146,85 +149,99 @@ const Checkout = ({navigation}) => {
     }
 
     return (
-      <ScrollView style={[styles.container, { backgroundColor: background }]}>
-  
+      <ScrollView style={[styles.container, { backgroundColor: background }]} showsVerticalScrollIndicator={false}>
+
         <Text style={[styles.title, { color: textColor }]}>Checkout</Text>
-  
+
         {/* delivery details */}
-        <Text style={[styles.section, { color: textColor }]}>
-          Delivery Details
-        </Text>
-  
-        <Text style={[styles.label, { color: textColor }]}>Full Name</Text>
-        <TextInput
-          style={styles.input}
-          value={name}
-          onChangeText={setName}
-          placeholder="Enter your full name"
-        />
-  
-        <Text style={[styles.label, { color: textColor }]}>Address</Text>
-        <TextInput
-          style={styles.input}
-          value={address}
-          onChangeText={setAddress}
-          placeholder="Enter your delivery address"
-        />
-  
-        {/* payment details */}
-        <Text style={[styles.section, { color: textColor }]}>
-          Payment Details
-        </Text>
-  
-        <Text style={styles.securetext}>🔒 Your payment info is secure and never stored</Text>
-  
-        <Text style={[styles.label, { color: textColor }]}>Card Number</Text>
-        <TextInput
-          style={styles.input}
-          value={cardNumber}
-          onChangeText={setCardNumber}
-          placeholder="1234 5678 9012 3456"
-          keyboardType="numeric"
-          maxLength={16}
-        />
-  
-        <View style={styles.row}>
-          <View style={styles.halfwidth}>
-            <Text style={[styles.label, { color: textColor }]}>Expiry</Text>
-            <TextInput
-              style={styles.input}
-              value={expiry}
-              onChangeText={setExpiry}
-              placeholder="MM/YY"
-              keyboardType="numeric"
-              maxLength={5}
-            />
+        <View style={[styles.sectionCard, { backgroundColor: cardBg }]}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="location-outline" size={18} color="#c2b5be" />
+            <Text style={[styles.section, { color: textColor }]}>Delivery Details</Text>
           </View>
-  
-          <View style={styles.halfwidth}>
-            <Text style={[styles.label, { color: textColor }]}>CVV</Text>
-            <TextInput
-              style={styles.input}
-              value={cvv}
-              onChangeText={setCvv}
-              placeholder="123"
-              keyboardType="numeric"
-              secureTextEntry={true}
-              maxLength={3}
-            />
+
+          <Text style={[styles.label, { color: mutedText }]}>Full Name</Text>
+          <TextInput
+            style={[styles.input, { color: textColor }]}
+            value={name}
+            onChangeText={setName}
+            placeholder="Enter your full name"
+            placeholderTextColor="#B3A0A8"
+          />
+
+          <Text style={[styles.label, { color: mutedText }]}>Address</Text>
+          <TextInput
+            style={[styles.input, { color: textColor }]}
+            value={address}
+            onChangeText={setAddress}
+            placeholder="Enter your delivery address"
+            placeholderTextColor="#B3A0A8"
+          />
+        </View>
+
+        {/* payment details */}
+        <View style={[styles.sectionCard, { backgroundColor: cardBg }]}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="card-outline" size={18} color="#c2b5be" />
+            <Text style={[styles.section, { color: textColor }]}>Payment Details</Text>
+          </View>
+
+          <View style={styles.secureRow}>
+            <Ionicons name="lock-closed-outline" size={13} color="#3F8F68" />
+            <Text style={styles.securetext}>Your payment info is secure and never stored</Text>
+          </View>
+
+          <Text style={[styles.label, { color: mutedText }]}>Card Number</Text>
+          <TextInput
+            style={[styles.input, { color: textColor }]}
+            value={cardNumber}
+            onChangeText={setCardNumber}
+            placeholder="1234 5678 9012 3456"
+            placeholderTextColor="#B3A0A8"
+            keyboardType="numeric"
+            maxLength={16}
+          />
+
+          <View style={styles.row}>
+            <View style={styles.halfwidth}>
+              <Text style={[styles.label, { color: mutedText }]}>Expiry</Text>
+              <TextInput
+                style={[styles.input, { color: textColor }]}
+                value={expiry}
+                onChangeText={setExpiry}
+                placeholder="MM/YY"
+                placeholderTextColor="#B3A0A8"
+                keyboardType="numeric"
+                maxLength={5}
+              />
+            </View>
+
+            <View style={styles.halfwidth}>
+              <Text style={[styles.label, { color: mutedText }]}>CVV</Text>
+              <TextInput
+                style={[styles.input, { color: textColor }]}
+                value={cvv}
+                onChangeText={setCvv}
+                placeholder="123"
+                placeholderTextColor="#B3A0A8"
+                keyboardType="numeric"
+                secureTextEntry={true}
+                maxLength={3}
+              />
+            </View>
           </View>
         </View>
-  
+
         <TouchableOpacity style={styles.button} onPress={handleCheckout}>
           <Text style={styles.buttontext}>Place Order & Get Receipt</Text>
         </TouchableOpacity>
-  
+
       </ScrollView>
     )
   }
-  
+
   export default Checkout
-  
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -233,43 +250,65 @@ const Checkout = ({navigation}) => {
     },
 
     title: {
-      fontSize: 24,
-      fontWeight: 'bold',
+      fontSize: 26,
+      fontWeight: '700',
       marginBottom: 20,
     },
 
+    sectionCard: {
+      borderRadius: 16,
+      padding: 18,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: '#EDE3E8',
+    },
+
+    sectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 14,
+    },
+
     section: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      marginTop: 20,
-      marginBottom: 10,
+      fontSize: 16,
+      fontWeight: '700',
+    },
+
+    secureRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginBottom: 12,
     },
 
     securetext: {
-      fontSize: 13,
-      color: 'green',
-      marginBottom: 10,
+      fontSize: 12,
+      color: '#3F8F68',
+      fontWeight: '600',
     },
 
     label: {
-      fontSize: 15,
+      fontSize: 13,
+      fontWeight: '600',
       marginBottom: 6,
-      marginTop: 8,
+      marginTop: 6,
     },
 
     input: {
       borderWidth: 1,
-      borderColor: '#c2b5be',
-      borderRadius: 8,
+      borderColor: '#EDE3E8',
+      borderRadius: 10,
       padding: 12,
       fontSize: 15,
-      backgroundColor: '#f9f7f6',
+      backgroundColor: 'transparent',
+      marginBottom: 4,
     },
 
     row: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      gap: 10,
+      gap: 12,
     },
 
     halfwidth: {
@@ -277,19 +316,19 @@ const Checkout = ({navigation}) => {
     },
 
     button: {
-      backgroundColor: '#e1d8cf',
-      padding: 15,
-      borderRadius: 10,
+      backgroundColor: '#c2b5be',
+      padding: 16,
+      borderRadius: 14,
       alignItems: 'center',
-      marginTop: 30,
+      marginTop: 10,
       marginBottom: 50,
     },
 
     buttontext: {
       fontSize: 16,
-      fontWeight: 'bold',
-      color: '#2C1F1F',
+      fontWeight: '700',
+      color: 'white',
     },
 
-    
+
   })

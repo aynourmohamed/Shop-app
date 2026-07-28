@@ -2,8 +2,9 @@ import { View, TouchableOpacity, Image, Text, ScrollView, StyleSheet, TextInput 
 import { useNavigation } from '@react-navigation/native';
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
-import { useTheme } from '../context/ThemeContext'
+import { useTheme } from '../context/ThemeContext';
 import { useNetworkState } from 'expo-network';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 const Home = () => {
     const navigation = useNavigation();
@@ -13,16 +14,19 @@ const Home = () => {
 
     const { theme } = useTheme()
 
-    const background = theme === 'dark' ? '#1a1a1a' : '#ffffff'
-    const textColor = theme === 'dark' ? '#ffffff' : '#2C1F1F'
+    const background = theme === 'dark' ? '#161512' : '#f9f7f6'
+    const textColor = theme === 'dark' ? '#F5EDE9' : '#2C1F1F'
+    const cardBg = theme === 'dark' ? '#252220' : '#FFFFFF'
+    const mutedText = theme === 'dark' ? '#B3A0A8' : '#8A7A82'
 
 
     return (
-        <ScrollView style={[styles.screen, { backgroundColor: background }]}>
+        <ScrollView style={[styles.screen, { backgroundColor: background }]} showsVerticalScrollIndicator={false}>
 
             {/* network banner only shows when offline */}
             {Offline && (
                 <View style={styles.offlinebanner}>
+                    <Ionicons name="cloud-offline-outline" size={16} color="white" />
                     <Text style={styles.offlinetext}>
                         No Network Connection
                     </Text>
@@ -30,14 +34,19 @@ const Home = () => {
             )}
 
             {/* logo */}
-            <View style={styles.logo}>
+            <View style={styles.logoWrap}>
                 <Image source={require('../assets/images/logo no bg.png')}
-                    style={styles.logo} resizeMode="contain" />
+                    style={styles.logoImage} resizeMode="contain" />
             </View>
 
             {/* search bar */}
-            <View style={styles.search}>
-                <TextInput style={styles.searchinput} placeholder="Search" />
+            <View style={[styles.search, { backgroundColor: cardBg }]}>
+                <Ionicons name="search-outline" size={18} color={mutedText} />
+                <TextInput
+                    style={[styles.searchinput, { color: textColor }]}
+                    placeholder="Search"
+                    placeholderTextColor={mutedText}
+                />
             </View>
 
             {/* header */}
@@ -47,12 +56,13 @@ const Home = () => {
 
                 {/* dark overlay */}
                 <View style={styles.overlay} />
-                <Text style={styles.headertext}>Candles That Care for You – Illuminate and Indulge</Text>
+                <Text style={styles.headertext}>Candles That Care for You{'\n'}Illuminate and Indulge</Text>
             </View>
 
             {/* products */}
-            <View style={styles.products}>
-                <Text style={styles.productstext}>Picks for this Season</Text>
+            <View style={[styles.products, { backgroundColor: cardBg }]}>
+                <Text style={[styles.productstext, { color: textColor }]}>Picks for this Season</Text>
+
                 <View style={styles.card}>
                     <Image source={require('../assets/images/oud 3 no bg.png')}
                         style={styles.productimage} />
@@ -86,24 +96,27 @@ const Home = () => {
                 </TouchableOpacity>
 
                 {/* image picker button */}
-                <TouchableOpacity style={styles.imagepickerbutton} onPress={() => navigation.navigate('Imagepicker')} >
-                    <Text style={styles.imagepickerbuttontext}>Upload or Take a Photo</Text>
+                <TouchableOpacity style={styles.secondarybutton} onPress={() => navigation.navigate('Imagepicker')} >
+                    <Ionicons name="camera-outline" size={16} color="#2C1F1F" />
+                    <Text style={styles.secondarybuttontext}>Upload or Take a Photo</Text>
                 </TouchableOpacity>
 
                 {/* store locator button */}
                 <TouchableOpacity
-                    style={styles.storebutton}
+                    style={styles.secondarybutton}
                     onPress={() => navigation.navigate('Storelocator')}
                 >
-                    <Text style={styles.storebuttontext}>📍 Find Nearest Store</Text>
+                    <Ionicons name="location-outline" size={16} color="#2C1F1F" />
+                    <Text style={styles.secondarybuttontext}>Find Nearest Store</Text>
                 </TouchableOpacity>
 
                  {/* order history button */}
                  <TouchableOpacity
-                    style={styles.storebutton}
+                    style={styles.secondarybutton}
                     onPress={() => navigation.navigate('Orderhistory')}
                 >
-                    <Text style={styles.storebuttontext}>order History</Text>
+                    <Ionicons name="receipt-outline" size={16} color="#2C1F1F" />
+                    <Text style={styles.secondarybuttontext}>Order History</Text>
                 </TouchableOpacity>
 
             </View>
@@ -115,66 +128,81 @@ export default Home
 
 const styles = StyleSheet.create({
     screen: {
-        backgroundColor: 'white',
         flex: 1,
     },
 
-    logo: {
-        width: 150,
-        height: 100,
-        marginBottom: 10,
+    logoWrap: {
+        alignItems: 'center',
+        marginTop: 8,
+        marginBottom: 4,
+    },
+
+    logoImage: {
+        width: 140,
+        height: 90,
     },
 
     search: {
-        backgroundColor: '#f5f5f5',
-        paddingHorizontal: 20,
-        marginTop: 10,
-        marginBottom: 10,
-        borderRadius: 10,
-        padding: 12,
-        borderWidth: 1,
-        borderColor: '#c2b5be',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginHorizontal: 20,
+        marginTop: 8,
+        marginBottom: 16,
+        borderRadius: 14,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 6,
+        elevation: 2,
     },
 
     searchinput: {
-        color: 'white',
         fontSize: 15,
+        flex: 1,
     },
 
     header: {
         width: '100%',
-        height: 150,
-        marginBottom: 30,
+        height: 170,
+        marginBottom: 24,
+        borderRadius: 0,
+        overflow: 'hidden',
     },
 
     headerimage: {
         width: '100%',
-        height: 150,
-        opacity: 0.8,
+        height: 170,
     },
 
     overlay: {
         position: 'absolute',
         width: '100%',
         height: '100%',
-        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        backgroundColor: 'rgba(44, 31, 31, 0.45)',
     },
 
     headertext: {
-        color: '#c2b5be',
+        color: '#f9f7f6',
         position: 'absolute',
-        marginTop: 65,
-        left: 35,
-        fontSize: 16,
+        bottom: 20,
+        left: 24,
+        right: 24,
+        fontSize: 20,
+        fontWeight: '700',
+        lineHeight: 26,
     },
 
     products: {
-        backgroundColor: '#f9f7f6',
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-around',
-        marginTop: 10,
-        padding: 10,
+        borderTopLeftRadius: 28,
+        borderTopRightRadius: 28,
+        alignItems: 'center',
+        paddingTop: 24,
+        paddingBottom: 16,
+        paddingHorizontal: 16,
+        gap: 14,
     },
 
     productimage: {
@@ -183,95 +211,98 @@ const styles = StyleSheet.create({
     },
 
     productstext: {
-        color: '#c2b5be',
         fontSize: 20,
+        fontWeight: '700',
         textAlign: 'center',
-        marginBottom: 10,
+        marginBottom: 6,
+        letterSpacing: 0.3,
     },
 
     card: {
-        backgroundColor: 'white',
-        width: '90%',
-        padding: 10,
+        backgroundColor: '#FFFFFF',
+        width: '100%',
+        padding: 16,
         alignItems: 'center',
-        borderRadius: 10,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#EDE3E8',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+        elevation: 1,
     },
 
     cardtext: {
-        color: 'black',
-        fontSize: 10,
-        marginBottom: 10,
+        color: '#2C1F1F',
+        fontSize: 14,
+        fontWeight: '600',
+        marginTop: 4,
+        marginBottom: 12,
     },
 
     cartbutton: {
-        backgroundColor: '#e1d8cf',
-        marginBottom: 20,
-        textAlign: 'center',
-        width: '40%',
+        backgroundColor: '#c2b5be',
         alignItems: 'center',
-        height: 25,
+        justifyContent: 'center',
+        width: '55%',
+        paddingVertical: 8,
         borderRadius: 20,
     },
 
     cartbuttontext: {
-        color: 'black',
-        marginTop: 4,
+        color: 'white',
+        fontWeight: '700',
+        fontSize: 13,
     },
 
     explorebutton: {
-        backgroundColor: '#e1d8cf',
-        width: '35%',
+        backgroundColor: '#c2b5be',
+        width: '70%',
         alignItems: 'center',
-        height: 25,
+        paddingVertical: 12,
         borderRadius: 20,
-        marginTop: 10,
+        marginTop: 6,
     },
 
     explorebuttontext: {
-        color: 'black',
-        marginTop: 4,
-        fontWeight: 'bold',
+        color: 'white',
+        fontWeight: '700',
+        fontSize: 14,
+        letterSpacing: 0.3,
     },
 
-    imagepickerbutton: {
-        backgroundColor: '#e1d8cf',
-        width: '45%',
+    secondarybutton: {
+        flexDirection: 'row',
         alignItems: 'center',
-        height: 30,
+        justifyContent: 'center',
+        gap: 8,
+        backgroundColor: '#EDE6EA',
+        width: '85%',
+        paddingVertical: 12,
         borderRadius: 20,
-        marginTop: 10,
+        marginTop: 4,
     },
 
-    imagepickerbuttontext: {
-        color: 'black',
-        marginTop: 5,
-        fontWeight: 'bold',
+    secondarybuttontext: {
+        color: '#2C1F1F',
+        fontWeight: '700',
+        fontSize: 14,
     },
 
     offlinebanner: {
-        backgroundColor: '#ff4444',
-        padding: 10,
+        backgroundColor: '#B5504A',
+        flexDirection: 'row',
+        justifyContent: 'center',
         alignItems: 'center',
+        gap: 8,
+        paddingVertical: 10,
     },
 
     offlinetext: {
         color: 'white',
-        fontWeight: 'bold',
-        fontSize: 14,
-    },
-
-    storebutton: {
-        backgroundColor: '#e1d8cf',
-        padding: 12,
-        borderRadius: 20,
-        alignItems: 'center',
-        width: '60%',
-        marginTop: 10,
-    },
-    storebuttontext: {
-        color: '#2C1F1F',
-        fontWeight: 'bold',
-        fontSize: 14,
+        fontWeight: '700',
+        fontSize: 13,
     },
 
 })

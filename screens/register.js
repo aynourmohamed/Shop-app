@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput} from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput, ScrollView } from "react-native";
 import { supabase } from "../lib/supabase";
 import { useState } from "react";
 
@@ -33,8 +33,7 @@ if (error) {
 }
 
   return (
-    <View style={styles.container}>
-
+    <ScrollView contentContainerStyle={styles.container}>
 
         {/* logo */}
         <Image source={require('../assets/images/logo no bg.png')}
@@ -48,7 +47,8 @@ if (error) {
 
         {/* firstname */}
         <Text style={styles.fieldname}>First Name</Text>
-        <TextInput placeholder='Enter your First name' 
+        <TextInput placeholder='Enter your First name'
+        placeholderTextColor="#B3A0A8"
         style={styles.input}
         value={firstname}
         onChangeText={setFirstname}
@@ -56,7 +56,8 @@ if (error) {
 
        {/* lastname */}
        <Text style={styles.fieldname}>Last Name</Text>
-        <TextInput placeholder='Enter your Last name' 
+        <TextInput placeholder='Enter your Last name'
+        placeholderTextColor="#B3A0A8"
         style={styles.input}
         value={lastname}
         onChangeText={setLastname}
@@ -64,7 +65,8 @@ if (error) {
 
        {/* email */}
        <Text style={styles.fieldname}>Email</Text>
-        <TextInput placeholder='Enter your email' 
+        <TextInput placeholder='Enter your email'
+        placeholderTextColor="#B3A0A8"
         style={styles.input}
         value={email}
         onChangeText={setEmail}
@@ -74,7 +76,8 @@ if (error) {
 
         {/* password */}
         <Text style={styles.fieldname}>Password</Text>
-        <TextInput placeholder='********' 
+        <TextInput placeholder='********'
+        placeholderTextColor="#B3A0A8"
         style={styles.input}
         value={password}
         onChangeText={setPassword}
@@ -83,7 +86,8 @@ if (error) {
 
         {/* confirm password */}
         <Text style={styles.fieldname}>Confirm Password</Text>
-        <TextInput placeholder='********' 
+        <TextInput placeholder='********'
+        placeholderTextColor="#B3A0A8"
         style={styles.input}
         value={confirmpassword}
         onChangeText={setConfrimpassword}
@@ -92,10 +96,10 @@ if (error) {
 
         {/* signup button */}
         <TouchableOpacity style={styles.button} onPress={Signup}>
-            <Text style={styles.buttontext}>Signup</Text>
+            <Text style={styles.buttontext}>Sign Up</Text>
         </TouchableOpacity>
 
-    </View>
+    </ScrollView>
   )
 }
 export default Register
@@ -103,53 +107,61 @@ export default Register
 const styles =StyleSheet.create({
 
     container: {
-        flex: 1,
         alignItems: 'center',
-        justifyContent: 'flex-start',
-        paddingTop: 65,
+        paddingTop: 60,
+        paddingBottom: 60,
+        backgroundColor: '#f9f7f6',
+        paddingHorizontal: 24,
       },
-  
+
       logo: {
-          width: 150,
-          height: 100,        
-          marginBottom: 10,
+          width: 130,
+          height: 85,
+          marginBottom: 16,
           alignSelf: 'center',
       },
 
       title: {
         fontSize: 20,
-        color: 'gray',
-        marginBottom: 30,
+        fontWeight: '600',
+        color: '#2C1F1F',
+        marginBottom: 28,
       },
 
       fieldname: {
-        fontSize: 20,
-        color: 'black',
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#2C1F1F',
+        marginBottom: 8,
+        alignSelf: 'flex-start',
       },
 
       input: {
-        backgroundColor: 'white',
-        borderRadius: 8,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 12,
         borderWidth: 1,
-        borderColor: 'gray',
-        width: '80%',
-        padding: 12,
+        borderColor: '#EDE3E8',
+        width: '100%',
+        padding: 14,
         fontSize: 15,
-        marginBottom: 15,
+        color: '#2C1F1F',
+        marginBottom: 16,
       },
 
       button: {
-        backgroundColor: '#e1d8cf',
+        backgroundColor: '#c2b5be',
         alignItems: 'center',
-        width: '85%',      
-        padding: 15,       
-        borderRadius: 10,  
-        marginTop: 20,
+        justifyContent: 'center',
+        width: '100%',
+        paddingVertical: 16,
+        borderRadius: 14,
+        marginTop: 12,
       },
 
       buttontext: {
-        color: 'black',
-        fontSize: 15,
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '700',
       },
 
 })

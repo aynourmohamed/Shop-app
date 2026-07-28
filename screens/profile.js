@@ -28,9 +28,9 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 
   // colors based on current theme
-  const background = theme === 'dark' ? '#161512' : '#FFFCFA'
+  const background = theme === 'dark' ? '#161512' : '#f9f7f6'
   const textColor  = theme === 'dark' ? '#F5EDE9' : '#2C1F1F'
-  const mutedText = theme === 'dark' ? '#B8A79E' : '#8C7A72'
+  const mutedText = theme === 'dark' ? '#B3A0A8' : '#8A7A82'
   const cardBg      = isDark ? '#252220' : '#FFFFFF'
 
 
@@ -55,7 +55,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
       {/* device locale info */}
       <View style={[styles.card, { backgroundColor: cardBg }]}>
         <View style={styles.sectionHeader}>
-          <Ionicons name="globe-outline" size={16} color="#C17C74" />
+          <Ionicons name="globe-outline" size={16} color="#c2b5be" />
           <Text style={[styles.sectiontitle, { color: textColor }]}>
           {t.devicelocale}
           </Text>
@@ -71,7 +71,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
       {/* currency selector */}
       <View style={[styles.card, { backgroundColor: cardBg }]}>
         <View style={styles.sectionHeader}>
-          <Ionicons name="cash-outline" size={16} color="#C17C74" />
+          <Ionicons name="cash-outline" size={16} color="#c2b5be" />
           <Text style={[styles.sectiontitle, { color: textColor }]}>
           {t.prefcurrency}
           </Text>
@@ -83,7 +83,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
               styles.optionbutton,
               selectedcurrency === currency.code
                 ? styles.optionbuttonActive
-                : { backgroundColor: isDark ? '#2f2a27' : '#F8F1EE' }
+                : { backgroundColor: isDark ? '#2f2a27' : '#EDE6EA' }
             ]}
             onPress={() => setSelectedcurrency(currency.code)}
           >
@@ -103,7 +103,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
       {/* language selector */}
       <View style={[styles.card, { backgroundColor: cardBg }]}>
         <View style={styles.sectionHeader}>
-          <Ionicons name="language-outline" size={16} color="#C17C74" />
+          <Ionicons name="language-outline" size={16} color="#c2b5be" />
           <Text style={[styles.sectiontitle, { color: textColor }]}>
             {t.preflanguage}
           </Text>
@@ -115,7 +115,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
               styles.optionbutton,
               selectedlanguage === language.code
                 ? styles.optionbuttonActive
-                : { backgroundColor: isDark ? '#2f2a27' : '#F8F1EE' }
+                : { backgroundColor: isDark ? '#2f2a27' : '#EDE6EA' }
             ]}
             onPress={() => setSelectedlanguage(language.code)}
           >
@@ -135,13 +135,13 @@ import Ionicons from '@expo/vector-icons/Ionicons';
       {/* dark mode toggle */}
       <View style={[styles.card, { backgroundColor: cardBg }]}>
         <View style={styles.sectionHeader}>
-          <Ionicons name="contrast-outline" size={16} color="#C17C74" />
+          <Ionicons name="contrast-outline" size={16} color="#c2b5be" />
           <Text style={[styles.sectiontitle, { color: textColor }]}>
             Appearance
           </Text>
         </View>
         <TouchableOpacity
-          style={[styles.optionbutton, { backgroundColor: isDark ? '#2f2a27' : '#F8F1EE' }]}
+          style={[styles.optionbutton, { backgroundColor: isDark ? '#2f2a27' : '#EDE6EA' }]}
           onPress={toggleTheme}
         >
           <Text style={[styles.optiontext, { color: textColor }]}>
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 18,
     borderWidth: 1,
-    borderColor: '#F1E7E2',
+    borderColor: '#EDE3E8',
   },
 
   sectionHeader: {
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   },
 
   optionbuttonActive: {
-    backgroundColor: '#C17C74',
+    backgroundColor: '#c2b5be',
   },
 
   optiontext: {

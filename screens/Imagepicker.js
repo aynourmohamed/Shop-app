@@ -11,9 +11,9 @@ export default function Imagepicker() {
   const [uploading, setUploading] = useState(false);
 
   const { theme } = useTheme()
-  const background = theme === 'dark' ? '#161512' : '#FFFCFA'
+  const background = theme === 'dark' ? '#161512' : '#f9f7f6'
   const textColor  = theme === 'dark' ? '#F5EDE9' : '#2C1F1F'
-  const mutedText = theme === 'dark' ? '#B8A79E' : '#8C7A72'
+  const mutedText = theme === 'dark' ? '#B3A0A8' : '#8A7A82'
 
   // pick from gallery
   async function pickFromGallery() {
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#C17C74',
+    backgroundColor: '#c2b5be',
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 14,
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#F3E6E1',
+    backgroundColor: '#EDE6EA',
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 14,

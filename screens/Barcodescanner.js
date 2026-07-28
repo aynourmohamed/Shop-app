@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   },
 
   permissionbutton: {
-    backgroundColor: '#C17C74',
+    backgroundColor: '#c2b5be',
     paddingVertical: 12,
     paddingHorizontal: 28,
     borderRadius: 20,
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     width: '75%',
     height: 140,
     borderWidth: 2,
-    borderColor: '#C17C74',
+    borderColor: '#c2b5be',
     borderRadius: 16,
   },
 
@@ -232,21 +232,21 @@ const styles = StyleSheet.create({
 
   productprice: {
     fontSize: 15,
-    color: '#C17C74',
+    color: '#c2b5be',
     fontWeight: '700',
     marginBottom: 4,
   },
 
   productcategory: {
     fontSize: 12,
-    color: '#8C7A72',
+    color: '#8A7A82',
     textTransform: 'uppercase',
     letterSpacing: 0.4,
     marginBottom: 16,
   },
 
   againbutton: {
-    backgroundColor: '#F3E6E1',
+    backgroundColor: '#EDE6EA',
     padding: 14,
     borderRadius: 14,
     alignItems: 'center',
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
   },
 
   addtocartbutton: {
-    backgroundColor: '#C17C74',
+    backgroundColor: '#c2b5be',
     padding: 14,
     borderRadius: 14,
     alignItems: 'center',

@@ -4,14 +4,17 @@ import { supabase } from "../lib/supabase";
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useFocusEffect } from "@react-navigation/native";
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 
 const Wishlist = () => {
 
 
     const { theme, isLowBattery} = useTheme()
-    const background = theme === 'dark' ? '#1a1a1a' : '#ffffff'
-    const textColor  = theme === 'dark' ? '#ffffff' : '#2C1F1F'
+    const background = theme === 'dark' ? '#161512' : '#FFFCFA'
+    const textColor  = theme === 'dark' ? '#F5EDE9' : '#2C1F1F'
+    const cardBg = theme === 'dark' ? '#252220' : '#FFFFFF'
+    const mutedText = theme === 'dark' ? '#B8A79E' : '#8C7A72'
 
     const [wishlist, setWishlist] = useState([])
 
@@ -24,7 +27,7 @@ const Wishlist = () => {
         }
       }, [])
     )
-    
+
     // fetch
       async function getWishlist() {
         const {data: {user}} = await supabase.auth.getUser()
@@ -44,7 +47,7 @@ const Wishlist = () => {
           }
         }
 
-        
+
         // add
     async function postWishlist(productID) {
         console.log('postWishlist called with productID:', productID)
@@ -80,34 +83,44 @@ const Wishlist = () => {
     }
 
     return (
-        <ScrollView style={[styles.screen, { backgroundColor: background }]}>
+        <ScrollView style={[styles.screen, { backgroundColor: background }]} showsVerticalScrollIndicator={false}>
 
             {/* logo */}
-            <View style={styles.logo}>
+            <View style={styles.logoWrap}>
                 <Image source={require('../assets/images/logo no bg.png')}
-                style={styles.logo} resizeMode="contain"/> 
+                style={styles.logoImage} resizeMode="contain"/>
             </View>
 
             {/* search bar */}
-            <View style={styles.search}>
-                <TextInput style={styles.searchinput} placeholder="Search" />
+            <View style={[styles.search, { backgroundColor: cardBg }]}>
+                <Ionicons name="search-outline" size={18} color={mutedText} />
+                <TextInput
+                  style={[styles.searchinput, { color: textColor }]}
+                  placeholder="Search"
+                  placeholderTextColor={mutedText}
+                />
             </View>
 
             {/* wishlist items */}
             <View style={styles.wishlistbox}>
             {wishlist.length === 0 ? (
-          <Text style={[styles.emptytext, { color: textColor }]}>
-            Your wishlist is empty
-          </Text>
+          <View style={styles.emptyState}>
+            <Ionicons name="heart-outline" size={40} color={mutedText} />
+            <Text style={[styles.emptytext, { color: textColor }]}>
+              Your wishlist is empty
+            </Text>
+          </View>
         ) : (
           wishlist.map((item) => (
-          <View key={item.id} style={styles.card}>
-            <Text style={[styles.productname, { color: textColor }]}>{item.Products?.name}</Text>
-            <Text style={styles.productprice}>{item.Products?.price} USD</Text>
-            <Text style={styles.productcategory}>{item.Products?.category}</Text>
-            
+          <View key={item.id} style={[styles.card, { backgroundColor: cardBg }]}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.productname, { color: textColor }]}>{item.Products?.name}</Text>
+              <Text style={styles.productcategory}>{item.Products?.category}</Text>
+              <Text style={styles.productprice}>{item.Products?.price} USD</Text>
+            </View>
+
             <TouchableOpacity style={styles.removebutton} onPress={() => deleteWishlist(item.id)}>
-              <Text style={styles.removebuttontext}>Remove</Text>
+              <Ionicons name="trash-outline" size={16} color="#B5504A" />
             </TouchableOpacity>
           </View>
         ))
@@ -123,92 +136,100 @@ export default Wishlist
 
 const styles = StyleSheet.create({
     screen: {
-        backgroundColor: 'white',
         flex: 1,
     },
 
-    logo: {
-        width: 150,
-        height: 100,        
-        marginBottom: 10,
+    logoWrap: {
+        alignItems: 'center',
+        marginTop: 8,
+        marginBottom: 4,
+    },
+
+    logoImage: {
+        width: 140,
+        height: 90,
     },
 
     search: {
-        backgroundColor: '#f5f5f5',
-        paddingHorizontal: 20,
-        marginTop: 10,
-        marginBottom: 10,
-        borderRadius: 10,
-        padding: 12,
-        borderWidth: 1,
-        borderColor: '#c2b5be',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginHorizontal: 20,
+        marginTop: 8,
+        marginBottom: 16,
+        borderRadius: 14,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 6,
+        elevation: 2,
     },
 
     searchinput: {
-        color: 'white',
         fontSize: 15,
+        flex: 1,
     },
 
     wishlistbox: {
-        padding: 15,
+        paddingHorizontal: 16,
+        paddingBottom: 16,
+        gap: 14,
       },
 
       card: {
-        backgroundColor: '#f9f7f6',
-        borderRadius: 10,
-        padding: 15,
-        marginBottom: 15,
+        borderRadius: 16,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: '#F1E7E2',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+        elevation: 1,
       },
 
       productname: {
         fontSize: 16,
-        fontWeight: 'bold',
-        color: 'black',
-        marginBottom: 5,
+        fontWeight: '700',
+        marginBottom: 4,
       },
 
       productprice: {
         fontSize: 14,
-        color: '#c2b5be',
-        marginBottom: 5,
+        color: '#C17C74',
+        fontWeight: '600',
+        marginTop: 2,
       },
 
       productcategory: {
         fontSize: 12,
-        color: 'gray',
-        marginBottom: 10,
-      },
-
-      cartbutton: {
-        backgroundColor: '#e1d8cf',
-        padding: 8,
-        borderRadius: 20,
-        alignItems: 'center',
-      },
-
-      cartbuttontext: {
-        color: 'black',
-        fontSize: 13,
+        color: '#8C7A72',
+        textTransform: 'uppercase',
+        letterSpacing: 0.4,
       },
 
       removebutton: {
-        backgroundColor: '#ffcccc',
-        padding: 8,
+        backgroundColor: '#FBEAE9',
+        padding: 10,
         borderRadius: 20,
         alignItems: 'center',
-        marginTop: 8,
+        justifyContent: 'center',
       },
 
-      removebuttontext: {
-        color: 'red',
-        fontSize: 13,
-        fontWeight: 'bold',
+      emptyState: {
+        alignItems: 'center',
+        marginTop: 60,
+        gap: 10,
       },
-      
+
       emptytext: {
         textAlign: 'center',
         fontSize: 16,
-        marginTop: 50,
       },
-    
+
 })

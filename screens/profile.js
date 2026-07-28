@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { useLocales } from 'expo-localization';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 
   const currencies = [
@@ -27,10 +28,10 @@ import { useLocales } from 'expo-localization';
 
 
   // colors based on current theme
-  const background = theme === 'dark' ? '#1a1a1a' : '#ffffff'
-  const textColor  = theme === 'dark' ? '#ffffff' : '#2C1F1F'
-  const buttonColor = theme === 'dark' ? '#C17C74' : '#e1d8cf'
-  const cardBg      = isDark ? '#2a2a2a' : '#f9f7f6'
+  const background = theme === 'dark' ? '#161512' : '#FFFCFA'
+  const textColor  = theme === 'dark' ? '#F5EDE9' : '#2C1F1F'
+  const mutedText = theme === 'dark' ? '#B8A79E' : '#8C7A72'
+  const cardBg      = isDark ? '#252220' : '#FFFFFF'
 
 
   const locales = useLocales()
@@ -42,9 +43,9 @@ import { useLocales } from 'expo-localization';
     const {supabase} =await import('../lib/supabase')
     await supabase.auth.signOut()
   }
-  
+
     return (
-      <ScrollView style={[styles.screen, { backgroundColor: background }]}>
+      <ScrollView style={[styles.screen, { backgroundColor: background }]} showsVerticalScrollIndicator={false}>
 
       {/* logo */}
       <View style={styles.header}>
@@ -53,37 +54,47 @@ import { useLocales } from 'expo-localization';
 
       {/* device locale info */}
       <View style={[styles.card, { backgroundColor: cardBg }]}>
-        <Text style={[styles.sectiontitle, { color: textColor }]}>
-        {t.devicelocale}
-        </Text>
-        <Text style={[styles.infotext, { color: textColor }]}>
+        <View style={styles.sectionHeader}>
+          <Ionicons name="globe-outline" size={16} color="#C17C74" />
+          <Text style={[styles.sectiontitle, { color: textColor }]}>
+          {t.devicelocale}
+          </Text>
+        </View>
+        <Text style={[styles.infotext, { color: mutedText }]}>
         {t.language}: {selectedlanguage.toUpperCase()}
         </Text>
-        <Text style={[styles.infotext, { color: textColor }]}>
+        <Text style={[styles.infotext, { color: mutedText }]}>
         {t.currency}: {selectedcurrency}
         </Text>
       </View>
 
       {/* currency selector */}
       <View style={[styles.card, { backgroundColor: cardBg }]}>
-        <Text style={[styles.sectiontitle, { color: textColor }]}>
-        {t.prefcurrency}
-        </Text>
+        <View style={styles.sectionHeader}>
+          <Ionicons name="cash-outline" size={16} color="#C17C74" />
+          <Text style={[styles.sectiontitle, { color: textColor }]}>
+          {t.prefcurrency}
+          </Text>
+        </View>
         {currencies.map((currency) => (
           <TouchableOpacity
             key={currency.code}
             style={[
               styles.optionbutton,
-              { backgroundColor: selectedcurrency === currency.code
-                ? '#C17C74' : buttonColor }
+              selectedcurrency === currency.code
+                ? styles.optionbuttonActive
+                : { backgroundColor: isDark ? '#2f2a27' : '#F8F1EE' }
             ]}
             onPress={() => setSelectedcurrency(currency.code)}
           >
-            <Text style={[styles.optiontext, { color: textColor }]}>
+            <Text style={[
+              styles.optiontext,
+              { color: selectedcurrency === currency.code ? 'white' : textColor }
+            ]}>
               {currency.symbol} {currency.label} ({currency.code})
             </Text>
             {selectedcurrency === currency.code && (
-              <Text style={styles.checkmark}>✓</Text>
+              <Ionicons name="checkmark" size={18} color="white" />
             )}
           </TouchableOpacity>
         ))}
@@ -91,24 +102,31 @@ import { useLocales } from 'expo-localization';
 
       {/* language selector */}
       <View style={[styles.card, { backgroundColor: cardBg }]}>
-        <Text style={[styles.sectiontitle, { color: textColor }]}>
-          {t.preflanguage}
-        </Text>
+        <View style={styles.sectionHeader}>
+          <Ionicons name="language-outline" size={16} color="#C17C74" />
+          <Text style={[styles.sectiontitle, { color: textColor }]}>
+            {t.preflanguage}
+          </Text>
+        </View>
         {languages.map((language) => (
           <TouchableOpacity
             key={language.code}
             style={[
               styles.optionbutton,
-              { backgroundColor: selectedlanguage === language.code
-                ? '#C17C74' : buttonColor }
+              selectedlanguage === language.code
+                ? styles.optionbuttonActive
+                : { backgroundColor: isDark ? '#2f2a27' : '#F8F1EE' }
             ]}
             onPress={() => setSelectedlanguage(language.code)}
           >
-            <Text style={[styles.optiontext, { color: textColor }]}>
+            <Text style={[
+              styles.optiontext,
+              { color: selectedlanguage === language.code ? 'white' : textColor }
+            ]}>
               {language.label}
             </Text>
             {selectedlanguage === language.code && (
-              <Text style={styles.checkmark}>✓</Text>
+              <Ionicons name="checkmark" size={18} color="white" />
             )}
           </TouchableOpacity>
         ))}
@@ -116,11 +134,14 @@ import { useLocales } from 'expo-localization';
 
       {/* dark mode toggle */}
       <View style={[styles.card, { backgroundColor: cardBg }]}>
-        <Text style={[styles.sectiontitle, { color: textColor }]}>
-          Appearance
-        </Text>
+        <View style={styles.sectionHeader}>
+          <Ionicons name="contrast-outline" size={16} color="#C17C74" />
+          <Text style={[styles.sectiontitle, { color: textColor }]}>
+            Appearance
+          </Text>
+        </View>
         <TouchableOpacity
-          style={[styles.optionbutton, { backgroundColor: buttonColor }]}
+          style={[styles.optionbutton, { backgroundColor: isDark ? '#2f2a27' : '#F8F1EE' }]}
           onPress={toggleTheme}
         >
           <Text style={[styles.optiontext, { color: textColor }]}>
@@ -138,6 +159,7 @@ import { useLocales } from 'expo-localization';
           navigation.navigate('Welcome')
         }}
       >
+        <Ionicons name="log-out-outline" size={18} color="#B5504A" />
         <Text style={styles.logouttext}>Logout</Text>
       </TouchableOpacity>
 
@@ -161,20 +183,28 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
 
   card: {
-    margin: 15,
-    marginTop: 5,
-    borderRadius: 12,
-    padding: 15,
+    marginHorizontal: 16,
+    marginBottom: 14,
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: '#F1E7E2',
+  },
+
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 14,
   },
 
   sectiontitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 12,
+    fontWeight: '700',
   },
 
   infotext: {
@@ -186,36 +216,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
+    padding: 14,
+    borderRadius: 12,
     marginBottom: 8,
+  },
+
+  optionbuttonActive: {
+    backgroundColor: '#C17C74',
   },
 
   optiontext: {
     fontSize: 14,
-    fontWeight: '500',
-  },
-
-  checkmark: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
+    fontWeight: '600',
   },
 
   logoutbutton: {
-    backgroundColor: '#ffcccc',
-    margin: 15,
-    padding: 15,
-    borderRadius: 10,
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FBEAE9',
+    marginHorizontal: 16,
+    padding: 16,
+    borderRadius: 14,
     marginBottom: 40,
   },
 
   logouttext: {
-    color: 'red',
+    color: '#B5504A',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
-  
+
 })
-  

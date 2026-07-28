@@ -4,14 +4,16 @@ import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import { supabase } from '../lib/supabase';
 import { useTheme } from '../context/ThemeContext';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 export default function Imagepicker() {
   const [image, setImage] = useState(null);
   const [uploading, setUploading] = useState(false);
 
   const { theme } = useTheme()
-  const background = theme === 'dark' ? '#1a1a1a' : '#ffffff'
-  const textColor  = theme === 'dark' ? '#ffffff' : '#2C1F1F'
+  const background = theme === 'dark' ? '#161512' : '#FFFCFA'
+  const textColor  = theme === 'dark' ? '#F5EDE9' : '#2C1F1F'
+  const mutedText = theme === 'dark' ? '#B8A79E' : '#8C7A72'
 
   // pick from gallery
   async function pickFromGallery() {
@@ -87,7 +89,7 @@ export default function Imagepicker() {
         const { data: urlData } = supabase.storage
           .from('productimage')
           .getPublicUrl(filename)
-        
+
         console.log('public URL:', urlData.publicUrl)
         Alert.alert('Success', 'Image uploaded successfully!')
       }
@@ -105,9 +107,14 @@ export default function Imagepicker() {
   return (
     <View style={[styles.container, { backgroundColor: background }]}>
       <Text style={[styles.title, { color: textColor }]}>Product Image Upload</Text>
+      <Text style={[styles.subtitle, { color: mutedText }]}>Add a photo from your gallery or camera</Text>
 
-      {image && (
+      {image ? (
         <Image source={{ uri: image }} style={styles.image} />
+      ) : (
+        <View style={[styles.placeholder, { borderColor: mutedText }]}>
+          <Ionicons name="image-outline" size={40} color={mutedText} />
+        </View>
       )}
 
       <TouchableOpacity
@@ -115,19 +122,21 @@ export default function Imagepicker() {
         onPress={pickFromGallery}
         disabled={uploading}
       >
+        <Ionicons name="images-outline" size={18} color="white" />
         <Text style={styles.buttontext}>
-          {uploading ? 'Uploading...' : '🖼️ Pick from Gallery'}
+          {uploading ? 'Uploading...' : 'Pick from Gallery'}
         </Text>
       </TouchableOpacity>
 
 
       <TouchableOpacity
-        style={[styles.button, uploading && styles.buttonDisabled]}
+        style={[styles.secondaryButton, uploading && styles.buttonDisabled]}
         onPress={pickFromCamera}
         disabled={uploading}
       >
-        <Text style={styles.buttontext}>
-          {uploading ? 'Uploading...' : '📷 Take a Photo'}
+        <Ionicons name="camera-outline" size={18} color="#2C1F1F" />
+        <Text style={styles.secondaryButtontext}>
+          {uploading ? 'Uploading...' : 'Take a Photo'}
         </Text>
       </TouchableOpacity>
     </View>
@@ -139,30 +148,62 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+    padding: 24,
   },
 
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 24,
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+
+  subtitle: {
+    fontSize: 13,
+    marginBottom: 28,
+    textAlign: 'center',
   },
 
   image: {
     width: 220,
     height: 220,
-    marginBottom: 24,
-    borderRadius: 12,
+    marginBottom: 28,
+    borderRadius: 16,
   },
-  
-  button: {
-    backgroundColor: '#e1d8cf',
-    paddingVertical: 14,
-    paddingHorizontal: 30,
-    borderRadius: 12,
+
+  placeholder: {
+    width: 220,
+    height: 220,
+    marginBottom: 28,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
     alignItems: 'center',
-    width: '80%',
+    justifyContent: 'center',
+  },
+
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#C17C74',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 14,
+    width: '85%',
     marginBottom: 12,
+  },
+
+  secondaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#F3E6E1',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 14,
+    width: '85%',
   },
 
   buttonDisabled: {
@@ -170,9 +211,15 @@ const styles = StyleSheet.create({
   },
 
   buttontext: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+
+  secondaryButtontext: {
     color: '#2C1F1F',
     fontSize: 15,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
 
 

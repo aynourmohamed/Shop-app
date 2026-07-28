@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { supabase } from "../lib/supabase";
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 
 const Barcodescanner = () => {
@@ -21,8 +22,10 @@ const Barcodescanner = () => {
     // camera permissions are not granted yet
     return (
       <View style={styles.container}>
-        <Text style={styles.message}>We need your permission to scan Barcode</Text>
-        <Button onPress={requestPermission} title="grant permission" />
+        <Text style={styles.message}>We need your permission to scan barcodes</Text>
+        <TouchableOpacity style={styles.permissionbutton} onPress={requestPermission}>
+          <Text style={styles.permissionbuttontext}>Grant Permission</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -30,7 +33,7 @@ const Barcodescanner = () => {
   //barcode is scanned
   async function handleBarcodeScan({data}) {
     //stop scanning when scanned once
-    if (scanned) return 
+    if (scanned) return
     setScanned(true)
 
     console.log('barcode scanned:', data)
@@ -81,9 +84,18 @@ const Barcodescanner = () => {
         {/* camera */}
         <CameraView style={styles.camera} facing={facing} onBarcodeScanned={handleBarcodeScan} />
 
+        {/* scan frame overlay */}
+        {!product && (
+          <View pointerEvents="none" style={styles.frameOverlay}>
+            <View style={styles.frame} />
+            <Text style={styles.frameHint}>Align barcode within the frame</Text>
+          </View>
+        )}
+
         {/* flip button */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
+          <Ionicons name="camera-reverse-outline" size={22} color="white" />
           <Text style={styles.text}>Flip Camera</Text>
         </TouchableOpacity>
       </View>
@@ -97,9 +109,9 @@ const Barcodescanner = () => {
 
         {/* button to scan again */}
         <TouchableOpacity style={styles.againbutton} onPress={() => {
-            setScanned(false) 
+            setScanned(false)
             setProduct(null) }}>
-          <Text style={styles.againtext}>Scan Again Please</Text>
+          <Text style={styles.againtext}>Scan Again</Text>
         </TouchableOpacity>
 
         {/* add to cart the scanned item */}
@@ -119,15 +131,57 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
+    backgroundColor: '#161512',
   },
 
   message: {
     textAlign: 'center',
-    paddingBottom: 10,
+    paddingBottom: 16,
+    paddingHorizontal: 30,
+    color: '#2C1F1F',
+    fontSize: 15,
+  },
+
+  permissionbutton: {
+    backgroundColor: '#C17C74',
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+    borderRadius: 20,
+    alignSelf: 'center',
+  },
+
+  permissionbuttontext: {
+    color: 'white',
+    fontWeight: '700',
   },
 
   camera: {
     flex: 1,
+  },
+
+  frameOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  frame: {
+    width: '75%',
+    height: 140,
+    borderWidth: 2,
+    borderColor: '#C17C74',
+    borderRadius: 16,
+  },
+
+  frameHint: {
+    color: 'white',
+    marginTop: 16,
+    fontSize: 13,
+    fontWeight: '600',
   },
 
   buttonContainer: {
@@ -136,66 +190,84 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: 'transparent',
     width: '100%',
-    paddingHorizontal: 64,
+    justifyContent: 'center',
   },
 
   button: {
-    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(44,31,31,0.55)',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 24,
   },
 
   text: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '700',
     color: 'white',
   },
   productbox: {
     position: 'absolute',
+    bottom: 0,
     width: '100%',
     backgroundColor: 'white',
-    padding: 20,
+    padding: 24,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 8,
   },
 
   productname: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'black',
-    marginBottom: 5,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#2C1F1F',
+    marginBottom: 4,
   },
 
   productprice: {
-    fontSize: 14,
-    color: '#c2b5be',
-    marginBottom: 5,
+    fontSize: 15,
+    color: '#C17C74',
+    fontWeight: '700',
+    marginBottom: 4,
   },
 
   productcategory: {
     fontSize: 12,
-    color: 'gray',
-    marginBottom: 10,
+    color: '#8C7A72',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginBottom: 16,
   },
 
   againbutton: {
-    backgroundColor: '#e1d8cf',
-    padding: 10,
-    borderRadius: 10,
+    backgroundColor: '#F3E6E1',
+    padding: 14,
+    borderRadius: 14,
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 12,
   },
 
   againtext: {
-    fontWeight: 'bold',
+    fontWeight: '700',
+    color: '#2C1F1F',
   },
 
   addtocartbutton: {
-    backgroundColor: '#e1d8cf',
-    padding: 10,
-    borderRadius: 10,
+    backgroundColor: '#C17C74',
+    padding: 14,
+    borderRadius: 14,
     alignItems: 'center',
   },
 
   addtocarttext: {
-    fontWeight: 'bold',
+    fontWeight: '700',
+    color: 'white',
   },
- 
+
 })

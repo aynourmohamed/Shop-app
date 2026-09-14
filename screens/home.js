@@ -1,10 +1,30 @@
-import { View, TouchableOpacity, Image, Text, ScrollView, StyleSheet, TextInput } from "react-native";
+import { View, TouchableOpacity, Image, Text, ScrollView, StyleSheet, TextInput, Dimensions } from "react-native";
 import { useNavigation } from '@react-navigation/native';
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { useTheme } from '../context/ThemeContext';
 import { useNetworkState } from 'expo-network';
 import Ionicons from '@expo/vector-icons/Ionicons';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+const slides = [
+  {
+    image: require('../assets/images/header.png'),
+    title: 'Candles That Care for You',
+    subtitle: 'Illuminate and Indulge',
+  },
+  {
+    image: require('../assets/images/second header.png'),
+    title: 'Embrace Serenity',
+    subtitle: 'Light Your Path',
+  },
+  {
+    image: require('../assets/images/third header.jpg'),
+    title: 'Glow Naturally',
+    subtitle: 'Your Light, Your Way',
+  },
+];
 
 const Home = () => {
     const navigation = useNavigation();
@@ -19,6 +39,23 @@ const Home = () => {
     const cardBg = theme === 'dark' ? '#252220' : '#FFFFFF'
     const mutedText = theme === 'dark' ? '#B3A0A8' : '#8A7A82'
 
+    // hero carousel state
+    const [activeSlide, setActiveSlide] = useState(0)
+    const heroScrollRef = useRef(null)
+
+    useEffect(() => {
+      const timer = setInterval(() => {
+        const next = (activeSlide + 1) % slides.length
+        heroScrollRef.current?.scrollTo({ x: next * SCREEN_WIDTH, animated: true })
+        setActiveSlide(next)
+      }, 4000)
+      return () => clearInterval(timer)
+    }, [activeSlide])
+
+    function handleHeroScroll(event) {
+      const slideIndex = Math.round(event.nativeEvent.contentOffset.x / SCREEN_WIDTH)
+      setActiveSlide(slideIndex)
+    }
 
     return (
         <ScrollView style={[styles.screen, { backgroundColor: background }]} showsVerticalScrollIndicator={false}>
@@ -49,14 +86,45 @@ const Home = () => {
                 />
             </View>
 
-            {/* header */}
-            <View style={styles.header}>
-                <Image source={require('../assets/images/header.png')}
-                    style={styles.headerimage} resizeMode='cover' />
+            {/* hero carousel */}
+            <View style={styles.heroContainer}>
+                <ScrollView
+                    ref={heroScrollRef}
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    onMomentumScrollEnd={handleHeroScroll}
+                >
+                    {slides.map((slide, index) => (
+                        <View key={index} style={styles.heroSlide}>
+                            <Image source={slide.image} style={styles.heroImage} resizeMode="cover" />
+                            <View style={styles.heroOverlay} />
+                            <View style={styles.heroTextWrap}>
+                                <Text style={styles.heroTitle}>{slide.title}</Text>
+                                <Text style={styles.heroSubtitle}>{slide.subtitle}</Text>
+                                <TouchableOpacity
+                                    style={styles.heroButton}
+                                    onPress={() => navigation.navigate('Products')}
+                                >
+                                    <Text style={styles.heroButtonText}>Shop Now</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    ))}
+                </ScrollView>
 
-                {/* dark overlay */}
-                <View style={styles.overlay} />
-                <Text style={styles.headertext}>Candles That Care for You{'\n'}Illuminate and Indulge</Text>
+                {/* dot indicators */}
+                <View style={styles.dotsRow}>
+                    {slides.map((_, index) => (
+                        <View
+                            key={index}
+                            style={[
+                                styles.dot,
+                                index === activeSlide && styles.dotActive
+                            ]}
+                        />
+                    ))}
+                </View>
             </View>
 
             {/* products */}
@@ -67,6 +135,7 @@ const Home = () => {
                     <Image source={require('../assets/images/oud 3 no bg.png')}
                         style={styles.productimage} />
                     <Text style={styles.cardtext}>Oud Scented Candle</Text>
+                    <Text style={styles.carddescription}>Rich, woody aroma for a luxurious ambiance.</Text>
                     <TouchableOpacity style={styles.cartbutton} onPress={() => navigation.navigate('Products')}>
                         <Text style={styles.cartbuttontext}>Add to Cart</Text>
                     </TouchableOpacity>
@@ -76,6 +145,7 @@ const Home = () => {
                     <Image source={require('../assets/images/aroma 2 no bg.png')}
                         style={styles.productimage} />
                     <Text style={styles.cardtext}>Aromatherapy Candle</Text>
+                    <Text style={styles.carddescription}>Essential oils for relaxation and well-being.</Text>
                     <TouchableOpacity style={styles.cartbutton} onPress={() => navigation.navigate('Products')}>
                         <Text style={styles.cartbuttontext}>Add to Cart</Text>
                     </TouchableOpacity>
@@ -85,6 +155,7 @@ const Home = () => {
                     <Image source={require('../assets/images/Candle kit no bg.png')}
                         style={styles.productimage} />
                     <Text style={styles.cardtext}>Candle Making Kit</Text>
+                    <Text style={styles.carddescription}>Everything you need to craft custom candles.</Text>
                     <TouchableOpacity style={styles.cartbutton} onPress={() => navigation.navigate('Products')}>
                         <Text style={styles.cartbuttontext}>Add to Cart</Text>
                     </TouchableOpacity>
@@ -164,35 +235,82 @@ const styles = StyleSheet.create({
         flex: 1,
     },
 
-    header: {
+    heroContainer: {
         width: '100%',
-        height: 170,
+        height: 220,
         marginBottom: 24,
-        borderRadius: 0,
-        overflow: 'hidden',
     },
 
-    headerimage: {
+    heroSlide: {
+        width: SCREEN_WIDTH,
+        height: 220,
+    },
+
+    heroImage: {
         width: '100%',
-        height: 170,
+        height: '100%',
     },
 
-    overlay: {
+    heroOverlay: {
         position: 'absolute',
         width: '100%',
         height: '100%',
         backgroundColor: 'rgba(44, 31, 31, 0.45)',
     },
 
-    headertext: {
-        color: '#f9f7f6',
+    heroTextWrap: {
         position: 'absolute',
-        bottom: 20,
-        left: 24,
-        right: 24,
+        width: '100%',
+        height: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 24,
+    },
+
+    heroTitle: {
+        color: '#f9f7f6',
         fontSize: 20,
         fontWeight: '700',
-        lineHeight: 26,
+        textAlign: 'center',
+        marginBottom: 4,
+    },
+
+    heroSubtitle: {
+        color: '#EDE6EA',
+        fontSize: 14,
+        textAlign: 'center',
+        marginBottom: 16,
+    },
+
+    heroButton: {
+        backgroundColor: '#c2b5be',
+        paddingVertical: 10,
+        paddingHorizontal: 24,
+        borderRadius: 20,
+    },
+
+    heroButtonText: {
+        color: 'white',
+        fontWeight: '700',
+        fontSize: 13,
+    },
+
+    dotsRow: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 6,
+        marginTop: 12,
+    },
+
+    dot: {
+        width: 20,
+        height: 3,
+        borderRadius: 2,
+        backgroundColor: '#EDE3E8',
+    },
+
+    dotActive: {
+        backgroundColor: '#c2b5be',
     },
 
     products: {
@@ -238,7 +356,16 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
         marginTop: 4,
+        textAlign: 'center',
+    },
+
+    carddescription: {
+        color: '#8A7A82',
+        fontSize: 12,
+        textAlign: 'center',
+        marginTop: 2,
         marginBottom: 12,
+        paddingHorizontal: 8,
     },
 
     cartbutton: {

@@ -1,10 +1,10 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import Home from "../screens/Home";
-import Profile from "../screens/Profile";
-import Cart from "../screens/Cart";
+import Home from "../screens/home";
+import Profile from "../screens/profile";
+import Cart from "../screens/cart";
 import Products from "../screens/Products";
-import Wishlist from "../screens/Wishlist";
+import Wishlist from "../screens/wishlist";
 import { useTheme } from '../context/ThemeContext';
 
 const Tab = createBottomTabNavigator();

@@ -9,9 +9,9 @@ import { supabase } from './lib/supabase';
 
 
 
-import Welcome from './screens/Welcome';
-import Login from './screens/Login';
-import Register from './screens/Register';
+import Welcome from './screens/welcome';
+import Login from './screens/login';
+import Register from './screens/register';
 import Barcodescanner from './screens/Barcodescanner';
 import Storelocator from './screens/Storelocator';
 import Checkout from './screens/Checkout';

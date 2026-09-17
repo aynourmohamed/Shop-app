@@ -1,6 +1,9 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useLocales } from 'expo-localization';
+import { supabase } from '../lib/supabase';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 
@@ -20,40 +23,68 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
   const Profile = ({navigation}) => {
 
-
-     // get theme and toggle from context
      const { theme, toggleTheme, selectedcurrency, setSelectedcurrency, selectedlanguage, setSelectedlanguage, t } = useTheme()
 
      const isDark = theme === 'dark'
 
-
-  // colors based on current theme
   const background = theme === 'dark' ? '#161512' : '#f9f7f6'
   const textColor  = theme === 'dark' ? '#F5EDE9' : '#2C1F1F'
   const mutedText = theme === 'dark' ? '#B3A0A8' : '#8A7A82'
   const cardBg      = isDark ? '#252220' : '#FFFFFF'
+  const borderColor = isDark ? '#3a3632' : '#EDE3E8'
 
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+
+  useEffect(() => {
+    loadUserInfo()
+  }, [])
+
+  async function loadUserInfo() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const first = user.user_metadata?.first_name || ''
+    const last = user.user_metadata?.last_name || ''
+    setFullName(`${first} ${last}`.trim())
+    setEmail(user.email || '')
+  }
+
+  const initial = fullName ? fullName[0].toUpperCase() : email ? email[0].toUpperCase() : '?'
 
   const locales = useLocales()
   const devicecurrency = locales[0]?.currencyCode || 'USD'
   const devicelanguage = locales[0]?.languageTag || 'en'
 
-
-  async function handleLogout() {
-    const {supabase} =await import('../lib/supabase')
-    await supabase.auth.signOut()
-  }
-
     return (
-      <ScrollView style={[styles.screen, { backgroundColor: background }]} showsVerticalScrollIndicator={false}>
+      <SafeAreaView edges={['top']} style={[styles.safearea, { backgroundColor: background }]}>
+      <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
 
       {/* logo */}
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: textColor }]}>Profile</Text>
+      <View style={styles.logoWrap}>
+        <Image source={require('../assets/images/logo no bg.png')}
+          style={styles.logoImage} resizeMode="contain" />
+      </View>
+
+      <Text style={[styles.pageTitle, { color: textColor }]}>Profile</Text>
+
+      {/* identity card */}
+      <View style={[styles.identityCard, { backgroundColor: cardBg, borderColor }]}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>{initial}</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.identityName, { color: textColor }]}>
+            {fullName || 'Luxe Éclat Member'}
+          </Text>
+          <Text style={[styles.identityEmail, { color: mutedText }]}>
+            {email}
+          </Text>
+        </View>
       </View>
 
       {/* device locale info */}
-      <View style={[styles.card, { backgroundColor: cardBg }]}>
+      <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
         <View style={styles.sectionHeader}>
           <Ionicons name="globe-outline" size={16} color="#c2b5be" />
           <Text style={[styles.sectiontitle, { color: textColor }]}>
@@ -69,7 +100,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
       </View>
 
       {/* currency selector */}
-      <View style={[styles.card, { backgroundColor: cardBg }]}>
+      <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
         <View style={styles.sectionHeader}>
           <Ionicons name="cash-outline" size={16} color="#c2b5be" />
           <Text style={[styles.sectiontitle, { color: textColor }]}>
@@ -101,7 +132,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
       </View>
 
       {/* language selector */}
-      <View style={[styles.card, { backgroundColor: cardBg }]}>
+      <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
         <View style={styles.sectionHeader}>
           <Ionicons name="language-outline" size={16} color="#c2b5be" />
           <Text style={[styles.sectiontitle, { color: textColor }]}>
@@ -133,7 +164,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
       </View>
 
       {/* dark mode toggle */}
-      <View style={[styles.card, { backgroundColor: cardBg }]}>
+      <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
         <View style={styles.sectionHeader}>
           <Ionicons name="contrast-outline" size={16} color="#c2b5be" />
           <Text style={[styles.sectiontitle, { color: textColor }]}>
@@ -154,7 +185,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
       <TouchableOpacity
         style={styles.logoutbutton}
         onPress={async () => {
-          const { supabase } = await import('../lib/supabase')
           await supabase.auth.signOut()
           navigation.navigate('Welcome')
         }}
@@ -164,6 +194,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
       </TouchableOpacity>
 
     </ScrollView>
+    </SafeAreaView>
   )
 }
 
@@ -172,18 +203,66 @@ export default Profile;
 
 
 const styles = StyleSheet.create({
+  safearea: {
+    flex: 1,
+  },
+
   screen: {
     flex: 1,
   },
 
-  header: {
-    padding: 20,
-    paddingTop: 60,
+  logoWrap: {
+    alignItems: 'center',
+    marginTop: 4,
+    marginBottom: 4,
   },
 
-  title: {
-    fontSize: 28,
+  logoImage: {
+    width: 130,
+    height: 65,
+  },
+
+  pageTitle: {
+    fontSize: 22,
     fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+
+  identityCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    marginHorizontal: 16,
+    marginBottom: 14,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+  },
+
+  avatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#c2b5be',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  avatarText: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: '700',
+  },
+
+  identityName: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+
+  identityEmail: {
+    fontSize: 13,
   },
 
   card: {
@@ -192,7 +271,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 18,
     borderWidth: 1,
-    borderColor: '#EDE3E8',
   },
 
   sectionHeader: {

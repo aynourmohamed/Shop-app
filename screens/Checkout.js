@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View, Text, TextInput, Alert, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
@@ -10,8 +11,6 @@ import { useTheme } from '../context/ThemeContext'
 import * as Haptics from 'expo-haptics'
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-
-
 const Checkout = ({navigation}) => {
 
   const { theme } = useTheme()
@@ -19,6 +18,7 @@ const Checkout = ({navigation}) => {
   const textColor  = theme === 'dark' ? '#F5EDE9' : '#2C1F1F'
   const cardBg = theme === 'dark' ? '#252220' : '#FFFFFF'
   const mutedText = theme === 'dark' ? '#B3A0A8' : '#8A7A82'
+  const borderColor = theme === 'dark' ? '#3a3632' : '#EDE3E8'
 
     const [name, setName] = useState('');
     const [address, setAddress] = useState('');
@@ -76,10 +76,8 @@ const Checkout = ({navigation}) => {
       </html>
     `
 
-    // create PDF file
     const { uri } = await Print.printToFileAsync({ html })
 
-    // share the PDF
     const canShare = await Sharing.isAvailableAsync()
     if (canShare) {
       await Sharing.shareAsync(uri, {
@@ -136,25 +134,29 @@ const Checkout = ({navigation}) => {
 
         await AsyncStorage.removeItem('cart')
 
-
         await sendorderNotifications();
-
 
         await generateAndSavePDF(cartItems, total, data?.id || 'N/A')
 
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
 
-
         Alert.alert('Success', 'Checkout completed!');
     }
 
     return (
-      <ScrollView style={[styles.container, { backgroundColor: background }]} showsVerticalScrollIndicator={false}>
+      <SafeAreaView edges={['top']} style={[styles.safearea, { backgroundColor: background }]}>
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
 
-        <Text style={[styles.title, { color: textColor }]}>Checkout</Text>
+        {/* header with back button */}
+        <View style={styles.headerRow}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={22} color={textColor} />
+          </TouchableOpacity>
+          <Text style={[styles.title, { color: textColor }]}>Checkout</Text>
+          <View style={styles.headerSpacer} />
+        </View>
 
-        {/* delivery details */}
-        <View style={[styles.sectionCard, { backgroundColor: cardBg }]}>
+        <View style={[styles.sectionCard, { backgroundColor: cardBg, borderColor }]}>
           <View style={styles.sectionHeader}>
             <Ionicons name="location-outline" size={18} color="#c2b5be" />
             <Text style={[styles.section, { color: textColor }]}>Delivery Details</Text>
@@ -162,25 +164,24 @@ const Checkout = ({navigation}) => {
 
           <Text style={[styles.label, { color: mutedText }]}>Full Name</Text>
           <TextInput
-            style={[styles.input, { color: textColor }]}
+            style={[styles.input, { color: textColor, borderColor }]}
             value={name}
             onChangeText={setName}
             placeholder="Enter your full name"
-            placeholderTextColor="#B3A0A8"
+            placeholderTextColor={mutedText}
           />
 
           <Text style={[styles.label, { color: mutedText }]}>Address</Text>
           <TextInput
-            style={[styles.input, { color: textColor }]}
+            style={[styles.input, { color: textColor, borderColor }]}
             value={address}
             onChangeText={setAddress}
             placeholder="Enter your delivery address"
-            placeholderTextColor="#B3A0A8"
+            placeholderTextColor={mutedText}
           />
         </View>
 
-        {/* payment details */}
-        <View style={[styles.sectionCard, { backgroundColor: cardBg }]}>
+        <View style={[styles.sectionCard, { backgroundColor: cardBg, borderColor }]}>
           <View style={styles.sectionHeader}>
             <Ionicons name="card-outline" size={18} color="#c2b5be" />
             <Text style={[styles.section, { color: textColor }]}>Payment Details</Text>
@@ -193,11 +194,11 @@ const Checkout = ({navigation}) => {
 
           <Text style={[styles.label, { color: mutedText }]}>Card Number</Text>
           <TextInput
-            style={[styles.input, { color: textColor }]}
+            style={[styles.input, { color: textColor, borderColor }]}
             value={cardNumber}
             onChangeText={setCardNumber}
             placeholder="1234 5678 9012 3456"
-            placeholderTextColor="#B3A0A8"
+            placeholderTextColor={mutedText}
             keyboardType="numeric"
             maxLength={16}
           />
@@ -206,11 +207,11 @@ const Checkout = ({navigation}) => {
             <View style={styles.halfwidth}>
               <Text style={[styles.label, { color: mutedText }]}>Expiry</Text>
               <TextInput
-                style={[styles.input, { color: textColor }]}
+                style={[styles.input, { color: textColor, borderColor }]}
                 value={expiry}
                 onChangeText={setExpiry}
                 placeholder="MM/YY"
-                placeholderTextColor="#B3A0A8"
+                placeholderTextColor={mutedText}
                 keyboardType="numeric"
                 maxLength={5}
               />
@@ -219,11 +220,11 @@ const Checkout = ({navigation}) => {
             <View style={styles.halfwidth}>
               <Text style={[styles.label, { color: mutedText }]}>CVV</Text>
               <TextInput
-                style={[styles.input, { color: textColor }]}
+                style={[styles.input, { color: textColor, borderColor }]}
                 value={cvv}
                 onChangeText={setCvv}
                 placeholder="123"
-                placeholderTextColor="#B3A0A8"
+                placeholderTextColor={mutedText}
                 keyboardType="numeric"
                 secureTextEntry={true}
                 maxLength={3}
@@ -237,22 +238,43 @@ const Checkout = ({navigation}) => {
         </TouchableOpacity>
 
       </ScrollView>
+      </SafeAreaView>
     )
   }
 
   export default Checkout
 
   const styles = StyleSheet.create({
+    safearea: {
+      flex: 1,
+    },
+
     container: {
       flex: 1,
       padding: 20,
-      paddingTop: 60,
+    },
+
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 12,
+    },
+
+    backButton: {
+      width: 36,
+      height: 36,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    headerSpacer: {
+      width: 36,
     },
 
     title: {
-      fontSize: 26,
+      fontSize: 22,
       fontWeight: '700',
-      marginBottom: 20,
     },
 
     sectionCard: {
@@ -260,7 +282,6 @@ const Checkout = ({navigation}) => {
       padding: 18,
       marginBottom: 16,
       borderWidth: 1,
-      borderColor: '#EDE3E8',
     },
 
     sectionHeader: {
@@ -297,7 +318,6 @@ const Checkout = ({navigation}) => {
 
     input: {
       borderWidth: 1,
-      borderColor: '#EDE3E8',
       borderRadius: 10,
       padding: 12,
       fontSize: 15,

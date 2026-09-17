@@ -1,15 +1,13 @@
-import { View, TouchableOpacity, Image, Text, ScrollView, StyleSheet, TextInput, Dimensions } from "react-native";
+import { View, TouchableOpacity, Image, Text, ScrollView, StyleSheet, TextInput } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabase";
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
+import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-// matches known products to bundled images until Products table has a real image column
 const productImageMap = {
   'oud': require('../assets/images/oud 3 no bg.png'),
   'aromatherapy': require('../assets/images/aroma 2 no bg.png'),
@@ -36,11 +34,13 @@ const Products = ({ navigation, route }) => {
 
   const [products, setProducts] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [cartQuantities, setCartQuantities] = useState({})
+  // maps productId -> wishlist row id, so we know what's saved AND how to delete it
+  const [wishlistMap, setWishlistMap] = useState({})
 
   const initialCategory = route.params?.category || null
   const [activeCategory, setActiveCategory] = useState(initialCategory)
 
-  // update filter if navigated here again with a new category param
   useEffect(() => {
     if (route.params?.category) {
       setActiveCategory(route.params.category)
@@ -59,6 +59,13 @@ const Products = ({ navigation, route }) => {
     }
   }, [])
 
+  useFocusEffect(
+    useCallback(() => {
+      loadCartQuantities()
+      loadWishlistStatus()
+    }, [])
+  )
+
   // realtime subscription
   useEffect(() => {
     let subscription
@@ -74,16 +81,12 @@ const Products = ({ navigation, route }) => {
           'postgres_changes',
           { event: 'UPDATE', schema: 'public', table: 'Products' },
           (payload) => {
-            console.log('Stock updated:', payload.new)
-
             setProducts(prev =>
               prev.map(p => p.id === payload.new.id ? payload.new : p)
             )
           }
         )
-        .subscribe((status) => {
-          console.log('Realtime status:', status)
-        })
+        .subscribe()
     }
 
     init()
@@ -105,7 +108,37 @@ const Products = ({ navigation, route }) => {
     }
   }
 
-  // add to cart
+  async function loadCartQuantities() {
+    try {
+      const existing = await AsyncStorage.getItem('cart')
+      const cart = existing ? JSON.parse(existing) : []
+      const map = {}
+      cart.forEach(item => { map[item.id] = item.quantity })
+      setCartQuantities(map)
+    } catch (error) {
+      console.log('cart load error:', error)
+    }
+  }
+
+  async function loadWishlistStatus() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data, error } = await supabase
+      .from('Wishlist')
+      .select('id, productid')
+      .eq('userid', user.id)
+
+    if (error) {
+      console.log('wishlist load error:', error)
+      return
+    }
+
+    const map = {}
+    data.forEach(row => { map[row.productid] = row.id })
+    setWishlistMap(map)
+  }
+
   async function addtoCart(product) {
     try {
       const existing = await AsyncStorage.getItem('cart')
@@ -113,43 +146,96 @@ const Products = ({ navigation, route }) => {
 
       const alreadyInCart = cart.find(item => item.id === product.id)
 
+      let updatedCart
       if (alreadyInCart) {
-        const updatedCart = cart.map(item =>
+        updatedCart = cart.map(item =>
           item.id === product.id
             ? { ...item, quantity: item.quantity + 1 }
             : item
         )
-        await AsyncStorage.setItem('cart', JSON.stringify(updatedCart))
-        alert('Quantity Updated')
       } else {
-        const updatedCart = [...cart, {
+        updatedCart = [...cart, {
           id: product.id,
           name: product.name,
           price: product.price,
           category: product.category,
           quantity: 1,
         }]
-        await AsyncStorage.setItem('cart', JSON.stringify(updatedCart))
-        alert('Added to Cart')
       }
 
+      await AsyncStorage.setItem('cart', JSON.stringify(updatedCart))
+      setCartQuantities(prev => ({ ...prev, [product.id]: (prev[product.id] || 0) + 1 }))
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
     } catch (error) {
       console.log('cart error:', error)
     }
   }
 
-  // add wishlist
-  async function postWishlist(productID) {
-    const { data: { user } } = await supabase.auth.getUser()
+  async function decreaseFromCart(productId) {
+    try {
+      const existing = await AsyncStorage.getItem('cart')
+      const cart = existing ? JSON.parse(existing) : []
 
-    const { error } = await supabase
-      .from('Wishlist')
-      .insert({ userid: user.id, productid: productID })
+      const updatedCart = cart
+        .map(item => item.id === productId ? { ...item, quantity: item.quantity - 1 } : item)
+        .filter(item => item.quantity > 0)
 
-    if (error) {
-      alert(error.message)
+      await AsyncStorage.setItem('cart', JSON.stringify(updatedCart))
+      setCartQuantities(prev => {
+        const next = { ...prev }
+        const newQty = (prev[productId] || 0) - 1
+        if (newQty <= 0) {
+          delete next[productId]
+        } else {
+          next[productId] = newQty
+        }
+        return next
+      })
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    } catch (error) {
+      console.log('cart error:', error)
+    }
+  }
+
+  // toggles wishlist state — adds if not saved, removes if already saved
+  async function toggleWishlist(productId) {
+    const existingRowId = wishlistMap[productId]
+
+    if (existingRowId) {
+      // already saved — remove it
+      const { error } = await supabase
+        .from('Wishlist')
+        .delete()
+        .eq('id', existingRowId)
+
+      if (error) {
+        alert(error.message)
+        return
+      }
+
+      setWishlistMap(prev => {
+        const next = { ...prev }
+        delete next[productId]
+        return next
+      })
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     } else {
-      alert('added to wishlist')
+      // not saved — add it
+      const { data: { user } } = await supabase.auth.getUser()
+
+      const { data, error } = await supabase
+        .from('Wishlist')
+        .insert({ userid: user.id, productid: productId })
+        .select()
+        .single()
+
+      if (error) {
+        alert(error.message)
+        return
+      }
+
+      setWishlistMap(prev => ({ ...prev, [productId]: data.id }))
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
     }
   }
 
@@ -157,7 +243,6 @@ const Products = ({ navigation, route }) => {
     <SafeAreaView edges={['top']} style={[styles.safearea, { backgroundColor: background }]}>
       <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
 
-        {/* logo */}
         <View style={styles.logoWrap}>
           <Image source={require('../assets/images/logo no bg.png')}
             style={styles.logoImage} resizeMode="contain" />
@@ -165,7 +250,6 @@ const Products = ({ navigation, route }) => {
 
         <Text style={[styles.pageTitle, { color: textColor }]}>Our Products</Text>
 
-        {/* search bar */}
         <View style={[styles.search, { backgroundColor: cardBg, borderColor }]}>
           <Ionicons name="search-outline" size={18} color={mutedText} />
           <TextInput
@@ -182,7 +266,6 @@ const Products = ({ navigation, route }) => {
           )}
         </View>
 
-        {/* active filter indicator — once, above the grid */}
         {activeCategory && (
           <View style={styles.filterRow}>
             <View style={[styles.filterPill, { backgroundColor: chipBg }]}>
@@ -196,12 +279,10 @@ const Products = ({ navigation, route }) => {
           </View>
         )}
 
-        {/* results count */}
         <Text style={[styles.resultsCount, { color: mutedText }]}>
           {visibleProducts.length} {visibleProducts.length === 1 ? 'product' : 'products'}
         </Text>
 
-        {/* products */}
         <View style={styles.productsbox}>
           {visibleProducts.length === 0 ? (
             <View style={styles.emptyState}>
@@ -213,6 +294,9 @@ const Products = ({ navigation, route }) => {
           ) : (
             visibleProducts.map((product) => {
               const image = getProductImage(product)
+              const quantityInCart = cartQuantities[product.id] || 0
+              const isWishlisted = Boolean(wishlistMap[product.id])
+
               return (
                 <View key={product.id} style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
                   <View style={styles.cardTopRow}>
@@ -241,26 +325,49 @@ const Products = ({ navigation, route }) => {
                     {product.stock === 0 ? 'Out of Stock' : `In Stock: ${product.stock}`}
                   </Text>
 
-                  {/* buttons row */}
                   <View style={styles.buttonrow}>
 
-                    <TouchableOpacity
-                      style={[styles.cartbutton, product.stock === 0 && { opacity: 0.4 }]}
-                      disabled={product.stock === 0}
-                      onPress={() => {
-                        addtoCart(product)
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-                      }}>
-                      <Text style={styles.cartbuttontext}>
-                        {product.stock === 0 ? 'Unavailable' : 'Add to Cart'}
-                      </Text>
-                    </TouchableOpacity>
+                    {product.stock === 0 ? (
+                      <View style={[styles.cartbutton, { opacity: 0.4 }]}>
+                        <Text style={styles.cartbuttontext}>Unavailable</Text>
+                      </View>
+                    ) : quantityInCart === 0 ? (
+                      <TouchableOpacity
+                        style={styles.cartbutton}
+                        onPress={() => addtoCart(product)}
+                      >
+                        <Text style={styles.cartbuttontext}>Add to Cart</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <View style={styles.stepper}>
+                        <TouchableOpacity
+                          style={styles.stepperButton}
+                          onPress={() => decreaseFromCart(product.id)}
+                        >
+                          <Ionicons name="remove" size={16} color="white" />
+                        </TouchableOpacity>
+                        <Text style={styles.stepperText}>{quantityInCart}</Text>
+                        <TouchableOpacity
+                          style={styles.stepperButton}
+                          onPress={() => addtoCart(product)}
+                        >
+                          <Ionicons name="add" size={16} color="white" />
+                        </TouchableOpacity>
+                      </View>
+                    )}
 
                     <TouchableOpacity
-                      style={[styles.lovebutton, { backgroundColor: theme === 'dark' ? '#3a2b2b' : '#FBEAE9' }]}
-                      onPress={() => postWishlist(product.id)}
+                      style={[
+                        styles.lovebutton,
+                        { backgroundColor: theme === 'dark' ? '#3a2b2b' : '#FBEAE9' }
+                      ]}
+                      onPress={() => toggleWishlist(product.id)}
                     >
-                      <Ionicons name="heart-outline" size={18} color="#c2b5be" />
+                      <Ionicons
+                        name={isWishlisted ? 'heart' : 'heart-outline'}
+                        size={18}
+                        color={isWishlisted ? '#B5504A' : '#c2b5be'}
+                      />
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -286,195 +393,82 @@ const Products = ({ navigation, route }) => {
 export default Products
 
 const styles = StyleSheet.create({
-  safearea: {
-    flex: 1,
-  },
+  safearea: { flex: 1 },
+  screen: { flex: 1 },
 
-  screen: {
-    flex: 1,
-  },
+  logoWrap: { alignItems: 'center', marginTop: 4, marginBottom: 4 },
+  logoImage: { width: 130, height: 65 },
 
-  logoWrap: {
-    alignItems: 'center',
-    marginTop: 4,
-    marginBottom: 4,
-  },
-
-  logoImage: {
-    width: 130,
-    height: 65,
-  },
-
-  pageTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
+  pageTitle: { fontSize: 22, fontWeight: '700', textAlign: 'center', marginBottom: 16 },
 
   search: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginHorizontal: 20,
-    marginBottom: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    marginHorizontal: 20, marginBottom: 12, borderRadius: 14, borderWidth: 1,
+    paddingHorizontal: 16, paddingVertical: 12,
   },
+  searchinput: { fontSize: 15, flex: 1 },
 
-  searchinput: {
-    fontSize: 15,
-    flex: 1,
-  },
-
-  filterRow: {
-    paddingHorizontal: 20,
-    marginBottom: 8,
-  },
-
+  filterRow: { paddingHorizontal: 20, marginBottom: 8 },
   filterPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    alignSelf: 'flex-start',
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 20,
+    flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start',
+    paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20,
   },
+  filterText: { fontSize: 13, fontWeight: '600', textTransform: 'capitalize' },
 
-  filterText: {
-    fontSize: 13,
-    fontWeight: '600',
-    textTransform: 'capitalize',
-  },
+  resultsCount: { fontSize: 13, paddingHorizontal: 20, marginBottom: 12 },
 
-  resultsCount: {
-    fontSize: 13,
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
+  productsbox: { paddingHorizontal: 16, paddingBottom: 32, gap: 14 },
 
-  productsbox: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-    gap: 14,
-  },
-
-  emptyState: {
-    alignItems: 'center',
-    marginTop: 60,
-    gap: 10,
-  },
-
-  emptytext: {
-    textAlign: 'center',
-    fontSize: 15,
-    fontWeight: '600',
-  },
+  emptyState: { alignItems: 'center', marginTop: 60, gap: 10 },
+  emptytext: { textAlign: 'center', fontSize: 15, fontWeight: '600' },
 
   card: {
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 1,
+    borderRadius: 16, padding: 16, borderWidth: 1,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04, shadowRadius: 8, elevation: 1,
   },
 
-  cardTopRow: {
-    flexDirection: 'row',
-    gap: 14,
-    marginBottom: 8,
-  },
+  cardTopRow: { flexDirection: 'row', gap: 14, marginBottom: 8 },
 
   productImageWrap: {
-    width: 72,
-    height: 72,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
+    width: 72, height: 72, borderRadius: 12,
+    alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
   },
+  productImage: { width: '85%', height: '85%' },
 
-  productImage: {
-    width: '85%',
-    height: '85%',
-  },
-
-  productname: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 2,
-  },
-
+  productname: { fontSize: 16, fontWeight: '700', marginBottom: 2 },
   productcategory: {
-    fontSize: 12,
-    color: '#8A7A82',
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-    marginBottom: 4,
+    fontSize: 12, color: '#8A7A82', textTransform: 'uppercase',
+    letterSpacing: 0.4, marginBottom: 4,
   },
-
-  productprice: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#c2b5be',
-  },
+  productprice: { fontSize: 15, fontWeight: '700', color: '#c2b5be' },
 
   stockbadge: {
-    fontSize: 12,
-    fontWeight: '700',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-    marginBottom: 12,
+    fontSize: 12, fontWeight: '700', alignSelf: 'flex-start',
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, marginBottom: 12,
   },
 
-  buttonrow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
+  buttonrow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 
   cartbutton: {
-    backgroundColor: '#c2b5be',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    alignItems: 'center',
+    backgroundColor: '#c2b5be', paddingVertical: 10, paddingHorizontal: 16,
+    borderRadius: 20, alignItems: 'center', flex: 1,
+  },
+  cartbuttontext: { color: 'white', fontSize: 13, fontWeight: '700' },
+
+  stepper: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: '#c2b5be', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 6,
     flex: 1,
   },
+  stepperButton: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  stepperText: { color: 'white', fontWeight: '700', fontSize: 14 },
 
-  cartbuttontext: {
-    color: 'white',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-
-  lovebutton: {
-    padding: 10,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  lovebutton: { padding: 10, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
 
   barcodebutton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 20,
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingVertical: 10, paddingHorizontal: 14, borderRadius: 20,
   },
-
-  barcodebuttontext: {
-    fontSize: 13,
-    fontWeight: '700',
-  },
-
+  barcodebuttontext: { fontSize: 13, fontWeight: '700' },
 })

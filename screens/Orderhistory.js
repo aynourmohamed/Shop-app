@@ -1,4 +1,5 @@
 import { View, TouchableOpacity, Image, Text, ScrollView, StyleSheet, ActivityIndicator } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabase";
 import { useTheme } from '../context/ThemeContext';
@@ -7,8 +8,20 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 const Page_Size = 4
 
-const Orders = () => {
+const productImageMap = {
+  'oud': require('../assets/images/oud 3 no bg.png'),
+  'aromatherapy': require('../assets/images/aroma 2 no bg.png'),
+  'candle making kit': require('../assets/images/Candle kit no bg.png'),
+};
 
+function getProductImage(item) {
+  const key = Object.keys(productImageMap).find((k) =>
+    item.name?.toLowerCase().includes(k)
+  );
+  return key ? productImageMap[key] : null;
+}
+
+const Orders = () => {
 
     const { theme, isLowBattery} = useTheme()
 
@@ -16,6 +29,8 @@ const Orders = () => {
     const textColor  = theme === 'dark' ? '#F5EDE9' : '#2C1F1F'
     const cardBg = theme === 'dark' ? '#252220' : '#FFFFFF'
     const mutedText = theme === 'dark' ? '#B3A0A8' : '#8A7A82'
+    const chipBg = theme === 'dark' ? '#2f2a27' : '#EDE6EA'
+    const borderColor = theme === 'dark' ? '#3a3632' : '#EDE3E8'
 
     const [orders, setOrders] = useState([])
     const [page, setPage] = useState(0)
@@ -51,9 +66,6 @@ const Orders = () => {
         .eq('userid', user.id)
         .order('created_at', {ascending: false})
         .range(from, to)
-
-        console.log('data:', data)
-        console.log('error:', error)
 
         if (error) {
           alert(error.message)
@@ -91,7 +103,8 @@ const Orders = () => {
       const items = getItems(selectedorder)
       const sc = statusColors(selectedorder.status)
       return (
-        <ScrollView style={[styles.screen, { backgroundColor: background }]} showsVerticalScrollIndicator={false}>
+        <SafeAreaView edges={['top']} style={[styles.safearea, { backgroundColor: background }]}>
+        <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
           <TouchableOpacity
             style={styles.backbutton}
             onPress={() => setSelectedorder(null)}
@@ -100,7 +113,7 @@ const Orders = () => {
             <Text style={styles.backtext}>Back to Orders</Text>
           </TouchableOpacity>
 
-          <View style={[styles.detailcard, { backgroundColor: cardBg }]}>
+          <View style={[styles.detailcard, { backgroundColor: cardBg, borderColor }]}>
             <Text style={[styles.detailtitle, { color: textColor }]}>
               Order #{selectedorder.id.slice(0, 8)}
             </Text>
@@ -131,30 +144,45 @@ const Orders = () => {
             {items.length === 0 ? (
               <Text style={{ color: mutedText }}>No items</Text>
             ) : (
-              items.map((item, index) => (
-                <View key={index} style={[styles.itemrow, { borderBottomColor: theme === 'dark' ? '#3a3632' : '#EDE3E8' }]}>
-                  <Text style={[styles.itemname, { color: textColor }]}>
-                    {item.name}
-                  </Text>
-                  <Text style={styles.itemprice}>
-                    {item.price} USD x {item.quantity}
-                  </Text>
+              items.map((item, index) => {
+                const image = getProductImage(item)
+                return (
+                <View key={index} style={[styles.itemrow, { borderBottomColor: borderColor }]}>
+                  <View style={[styles.itemImageWrap, { backgroundColor: chipBg }]}>
+                    {image ? (
+                      <Image source={image} style={styles.itemImage} resizeMode="contain" />
+                    ) : (
+                      <Ionicons name="flame-outline" size={20} color="#c2b5be" />
+                    )}
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.itemname, { color: textColor }]}>
+                      {item.name}
+                    </Text>
+                    <Text style={styles.itemprice}>
+                      {item.price} USD x {item.quantity}
+                    </Text>
+                  </View>
                 </View>
-              ))
+              )})
             )}
           </View>
         </ScrollView>
+        </SafeAreaView>
       )
     }
 
     return (
-    <ScrollView style={[styles.screen, { backgroundColor: background }]} showsVerticalScrollIndicator={false}>
+    <SafeAreaView edges={['top']} style={[styles.safearea, { backgroundColor: background }]}>
+    <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
 
-      <Image
-        source={require('../assets/images/logo no bg.png')}
-        style={styles.logo}
-        resizeMode="contain"
-      />
+      <View style={styles.logoWrap}>
+        <Image
+          source={require('../assets/images/logo no bg.png')}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
+      </View>
 
       <Text style={[styles.title, { color: textColor }]}>My Orders</Text>
 
@@ -172,7 +200,7 @@ const Orders = () => {
             return (
             <TouchableOpacity
               key={order.id}
-              style={[styles.card, { backgroundColor: cardBg }]}
+              style={[styles.card, { backgroundColor: cardBg, borderColor }]}
               onPress={() => setSelectedorder(order)}
             >
               <View style={styles.cardrow}>
@@ -195,7 +223,6 @@ const Orders = () => {
           )})
         )}
 
-        {/* loading indicator */}
         {loading && (
           <ActivityIndicator
             size="large"
@@ -204,17 +231,15 @@ const Orders = () => {
           />
         )}
 
-        {/* load more button */}
         {hasmore && !loading && orders.length > 0 && (
           <TouchableOpacity
-            style={styles.loadmorebutton}
+            style={[styles.loadmorebutton, { backgroundColor: chipBg }]}
             onPress={loadmore}
           >
-            <Text style={styles.loadmoretext}>Load More</Text>
+            <Text style={[styles.loadmoretext, { color: textColor }]}>Load More</Text>
           </TouchableOpacity>
         )}
 
-        {/* no more orders message */}
         {!hasmore && orders.length > 0 && (
           <Text style={[styles.nomoretext, { color: mutedText }]}>
             All orders loaded
@@ -223,33 +248,42 @@ const Orders = () => {
       </View>
 
     </ScrollView>
+    </SafeAreaView>
   )
 }
 
 export default Orders
 
 const styles = StyleSheet.create({
+  safearea: {
+    flex: 1,
+  },
+
   screen: {
     flex: 1,
   },
 
-  logo: {
-    width: 140,
-    height: 90,
-    alignSelf: 'center',
-    marginTop: 20,
+  logoWrap: {
+    alignItems: 'center',
+    marginTop: 4,
+    marginBottom: 4,
+  },
+
+  logoImage: {
+    width: 130,
+    height: 65,
   },
 
   title: {
     fontSize: 22,
     fontWeight: '700',
-    marginLeft: 16,
-    marginTop: 12,
-    marginBottom: 8,
+    textAlign: 'center',
+    marginBottom: 16,
   },
 
   ordersbox: {
     paddingHorizontal: 16,
+    paddingBottom: 32,
     gap: 14,
   },
 
@@ -268,7 +302,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#EDE3E8',
   },
 
   cardrow: {
@@ -317,7 +350,6 @@ const styles = StyleSheet.create({
   },
 
   loadmorebutton: {
-    backgroundColor: '#EDE6EA',
     padding: 14,
     borderRadius: 14,
     alignItems: 'center',
@@ -327,7 +359,6 @@ const styles = StyleSheet.create({
 
   loadmoretext: {
     fontWeight: '700',
-    color: '#2C1F1F',
   },
 
   nomoretext: {
@@ -342,7 +373,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     padding: 16,
-    paddingTop: 50,
+    paddingTop: 12,
   },
 
   backtext: {
@@ -356,7 +387,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#EDE3E8',
   },
 
   detailtitle: {
@@ -391,14 +421,30 @@ const styles = StyleSheet.create({
 
   itemrow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
     paddingVertical: 10,
     borderBottomWidth: 1,
+  },
+
+  itemImageWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+
+  itemImage: {
+    width: '80%',
+    height: '80%',
   },
 
   itemname: {
     fontSize: 14,
     fontWeight: '600',
+    marginBottom: 2,
   },
 
   itemprice: {
@@ -406,6 +452,5 @@ const styles = StyleSheet.create({
     color: '#c2b5be',
     fontWeight: '600',
   },
-
 
 })

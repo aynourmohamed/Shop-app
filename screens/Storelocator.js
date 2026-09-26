@@ -1,16 +1,19 @@
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useEffect, useState } from 'react'
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 import * as Location from 'expo-location'
+import MapView, { Marker } from 'react-native-maps'
 import { supabase } from '../lib/supabase'
 import { useTheme } from '../context/ThemeContext'
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-const Storelocator = () => {
+const Storelocator = ({ navigation }) => {
 
   const { theme } = useTheme()
   const background = theme === 'dark' ? '#161512' : '#f9f7f6'
   const textColor  = theme === 'dark' ? '#F5EDE9' : '#2C1F1F'
+  const cardBg = theme === 'dark' ? '#252220' : '#FFFFFF'
+  const mutedText = theme === 'dark' ? '#B3A0A8' : '#8A7A82'
 
   const [location, setLocation] = useState(null)
   const [stores, setStores] = useState([])
@@ -23,7 +26,6 @@ const Storelocator = () => {
 
   async function getLocationAndStores() {
     try {
-      // request permission
       const { status } = await Location.requestForegroundPermissionsAsync()
 
       if (status !== 'granted') {
@@ -32,20 +34,15 @@ const Storelocator = () => {
         return
       }
 
-      // get current user location
       const loc = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced
       })
 
-      console.log('user location:', loc.coords)
       setLocation(loc.coords)
 
-      // fetch stores from Supabase
       const { data, error } = await supabase
         .from('Store Location')
         .select('*')
-
-      console.log('stores data:', data)
 
       if (error) {
         console.log('stores error:', error)
@@ -63,27 +60,37 @@ const Storelocator = () => {
 
   if (loading) {
     return (
-      <View style={[styles.center, { backgroundColor: background }]}>
-        <ActivityIndicator size="large" color="#c2b5be" />
-        <Text style={[styles.loadingtext, { color: textColor }]}>
-          Getting your location...
-        </Text>
-      </View>
+      <SafeAreaView edges={['top']} style={[styles.safearea, { backgroundColor: background }]}>
+        <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="close" size={22} color={textColor} />
+        </TouchableOpacity>
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color="#c2b5be" />
+          <Text style={[styles.loadingtext, { color: textColor }]}>
+            Getting your location...
+          </Text>
+        </View>
+      </SafeAreaView>
     )
   }
 
   if (errorMsg) {
     return (
-      <View style={[styles.center, { backgroundColor: background }]}>
-        <Ionicons name="location-outline" size={40} color="#8A7A82" />
-        <Text style={[styles.errortext, { color: textColor }]}>{errorMsg}</Text>
-        <TouchableOpacity
-          style={styles.retrybutton}
-          onPress={getLocationAndStores}
-        >
-          <Text style={styles.retrybuttontext}>Try Again</Text>
+      <SafeAreaView edges={['top']} style={[styles.safearea, { backgroundColor: background }]}>
+        <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="close" size={22} color={textColor} />
         </TouchableOpacity>
-      </View>
+        <View style={styles.center}>
+          <Ionicons name="location-outline" size={40} color={mutedText} />
+          <Text style={[styles.errortext, { color: textColor }]}>{errorMsg}</Text>
+          <TouchableOpacity
+            style={styles.retrybutton}
+            onPress={getLocationAndStores}
+          >
+            <Text style={styles.retrybuttontext}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     )
   }
 
@@ -92,19 +99,14 @@ const Storelocator = () => {
       <MapView
         style={styles.map}
         initialRegion={{
-          // center map on user location if available
-          // otherwise default to Egypt
           latitude: location?.latitude || 30.0444,
           longitude: location?.longitude || 31.2357,
           latitudeDelta: 5,
           longitudeDelta: 5,
         }}
-        provider={PROVIDER_GOOGLE}
         showsUserLocation={true}
         showsMyLocationButton={true}
       >
-
-        {/* store markers */}
         {stores.map((store) => (
           <Marker
             key={store.id}
@@ -117,21 +119,25 @@ const Storelocator = () => {
             pinColor="#c2b5be"
           />
         ))}
-
       </MapView>
 
-      {/* info badge */}
-      <View style={styles.badge}>
+      {/* close button — respects safe area, sits over the map */}
+      <SafeAreaView edges={['top']} style={styles.topOverlay}>
+        <TouchableOpacity style={styles.closeIconButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="close" size={22} color="white" />
+        </TouchableOpacity>
+      </SafeAreaView>
+
+      <View style={[styles.badge, { backgroundColor: cardBg }]}>
         <Ionicons name="location" size={14} color="#c2b5be" />
-        <Text style={styles.badgetext}>
+        <Text style={[styles.badgetext, { color: textColor }]}>
           {stores.length} stores found
         </Text>
       </View>
 
-      {/* user location info */}
       {location && (
-        <View style={styles.locationbadge}>
-          <Text style={styles.locationtext}>
+        <View style={[styles.locationbadge, { backgroundColor: cardBg }]}>
+          <Text style={[styles.locationtext, { color: textColor }]}>
             Your location: {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
           </Text>
         </View>
@@ -144,6 +150,19 @@ const Storelocator = () => {
 export default Storelocator
 
 const styles = StyleSheet.create({
+  safearea: {
+    flex: 1,
+  },
+
+  closeButton: {
+    marginTop: 4,
+    marginLeft: 16,
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
   container: {
     flex: 1,
   },
@@ -183,6 +202,25 @@ const styles = StyleSheet.create({
     color: 'white',
   },
 
+  topOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 10,
+    elevation: 10,
+  },
+
+  closeIconButton: {
+    marginTop: 8,
+    marginLeft: 16,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(44,31,31,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
   badge: {
     position: 'absolute',
     top: 50,
@@ -190,7 +228,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'white',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
@@ -203,14 +240,12 @@ const styles = StyleSheet.create({
 
   badgetext: {
     fontWeight: '700',
-    color: '#2C1F1F',
   },
 
   locationbadge: {
     position: 'absolute',
     bottom: 30,
     alignSelf: 'center',
-    backgroundColor: 'white',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
@@ -223,7 +258,6 @@ const styles = StyleSheet.create({
 
   locationtext: {
     fontSize: 12,
-    color: '#2C1F1F',
   },
 
 })

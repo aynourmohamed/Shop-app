@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Alert, Image, View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import { supabase } from '../lib/supabase';
 import { useTheme } from '../context/ThemeContext';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-export default function Imagepicker() {
+export default function Imagepicker({ navigation }) {
   const [image, setImage] = useState(null);
   const [uploading, setUploading] = useState(false);
 
@@ -14,8 +15,8 @@ export default function Imagepicker() {
   const background = theme === 'dark' ? '#161512' : '#f9f7f6'
   const textColor  = theme === 'dark' ? '#F5EDE9' : '#2C1F1F'
   const mutedText = theme === 'dark' ? '#B3A0A8' : '#8A7A82'
+  const chipBg = theme === 'dark' ? '#2f2a27' : '#EDE6EA'
 
-  // pick from gallery
   async function pickFromGallery() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
@@ -36,7 +37,6 @@ export default function Imagepicker() {
     }
   }
 
-  // take photo with camera
   async function pickFromCamera() {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
@@ -56,7 +56,6 @@ export default function Imagepicker() {
     }
   }
 
-  // decode base64 to Uint8Array for Supabase
   function decode(base64) {
     const binaryString = atob(base64);
     const bytes = new Uint8Array(binaryString.length);
@@ -66,7 +65,6 @@ export default function Imagepicker() {
     return bytes;
   }
 
-  // upload to Supabase Storage using base64
   async function uploadImage(uri) {
     setUploading(true);
     try {
@@ -101,49 +99,77 @@ export default function Imagepicker() {
     }
   }
 
-
-
-
   return (
-    <View style={[styles.container, { backgroundColor: background }]}>
-      <Text style={[styles.title, { color: textColor }]}>Product Image Upload</Text>
-      <Text style={[styles.subtitle, { color: mutedText }]}>Add a photo from your gallery or camera</Text>
+    <SafeAreaView edges={['top']} style={[styles.safearea, { backgroundColor: background }]}>
+      <View style={styles.headerRow}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={22} color={textColor} />
+        </TouchableOpacity>
+        <View style={styles.headerSpacer} />
+      </View>
 
-      {image ? (
-        <Image source={{ uri: image }} style={styles.image} />
-      ) : (
-        <View style={[styles.placeholder, { borderColor: mutedText }]}>
-          <Ionicons name="image-outline" size={40} color={mutedText} />
-        </View>
-      )}
+      <View style={styles.container}>
+        <Text style={[styles.title, { color: textColor }]}>Product Image Upload</Text>
+        <Text style={[styles.subtitle, { color: mutedText }]}>Add a photo from your gallery or camera</Text>
 
-      <TouchableOpacity
-        style={[styles.button, uploading && styles.buttonDisabled]}
-        onPress={pickFromGallery}
-        disabled={uploading}
-      >
-        <Ionicons name="images-outline" size={18} color="white" />
-        <Text style={styles.buttontext}>
-          {uploading ? 'Uploading...' : 'Pick from Gallery'}
-        </Text>
-      </TouchableOpacity>
+        {image ? (
+          <Image source={{ uri: image }} style={styles.image} />
+        ) : (
+          <View style={[styles.placeholder, { borderColor: mutedText }]}>
+            <Ionicons name="image-outline" size={40} color={mutedText} />
+          </View>
+        )}
 
+        <TouchableOpacity
+          style={[styles.button, uploading && styles.buttonDisabled]}
+          onPress={pickFromGallery}
+          disabled={uploading}
+        >
+          <Ionicons name="images-outline" size={18} color="white" />
+          <Text style={styles.buttontext}>
+            {uploading ? 'Uploading...' : 'Pick from Gallery'}
+          </Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        style={[styles.secondaryButton, uploading && styles.buttonDisabled]}
-        onPress={pickFromCamera}
-        disabled={uploading}
-      >
-        <Ionicons name="camera-outline" size={18} color="#2C1F1F" />
-        <Text style={styles.secondaryButtontext}>
-          {uploading ? 'Uploading...' : 'Take a Photo'}
-        </Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity
+          style={[styles.secondaryButton, { backgroundColor: chipBg }, uploading && styles.buttonDisabled]}
+          onPress={pickFromCamera}
+          disabled={uploading}
+        >
+          <Ionicons name="camera-outline" size={18} color={textColor} />
+          <Text style={[styles.secondaryButtontext, { color: textColor }]}>
+            {uploading ? 'Uploading...' : 'Take a Photo'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safearea: {
+    flex: 1,
+  },
+
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 4,
+  },
+
+  backButton: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  headerSpacer: {
+    width: 36,
+  },
+
   container: {
     flex: 1,
     alignItems: 'center',
@@ -199,7 +225,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#EDE6EA',
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 14,
@@ -217,10 +242,8 @@ const styles = StyleSheet.create({
   },
 
   secondaryButtontext: {
-    color: '#2C1F1F',
     fontSize: 15,
     fontWeight: '700',
   },
-
 
 });

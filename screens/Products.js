@@ -6,7 +6,11 @@ import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as FileSystem from 'expo-file-system/legacy';
+import { useNetworkState } from 'expo-network';
 import Ionicons from '@expo/vector-icons/Ionicons';
+
+const CACHE_PATH = FileSystem.documentDirectory + 'products_cache.json';
 
 const productImageMap = {
   'oud': require('../assets/images/oud 3 no bg.png'),
@@ -35,8 +39,11 @@ const Products = ({ navigation, route }) => {
   const [products, setProducts] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [cartQuantities, setCartQuantities] = useState({})
-  // maps productId -> wishlist row id, so we know what's saved AND how to delete it
   const [wishlistMap, setWishlistMap] = useState({})
+  const [isFromCache, setIsFromCache] = useState(false)
+
+  const networkState = useNetworkState()
+  const isOffline = networkState.isConnected === false
 
   const initialCategory = route.params?.category || null
   const [activeCategory, setActiveCategory] = useState(initialCategory)
@@ -52,12 +59,19 @@ const Products = ({ navigation, route }) => {
     .filter(p => !searchQuery || p.name?.toLowerCase().includes(searchQuery.toLowerCase()))
 
   useEffect(() => {
-    if (isLowBattery) {
-      console.log('Battery low — skipping sync')
+    if (networkState.isConnected === undefined) {
+      return
+    }
+
+    if (networkState.isConnected === false) {
+      loadFromCache()
+    } else if (isLowBattery) {
+      console.log('Battery low — skipping sync, trying cache instead')
+      loadFromCache()
     } else {
       getProducts()
     }
-  }, [])
+  }, [networkState.isConnected, isLowBattery])
 
   useFocusEffect(
     useCallback(() => {
@@ -66,35 +80,26 @@ const Products = ({ navigation, route }) => {
     }, [])
   )
 
-  // realtime subscription
   useEffect(() => {
-    let subscription
+    if (isOffline) return
 
-    async function init() {
-      if (!isLowBattery) {
-        await getProducts()
-      }
-
-      subscription = supabase
-        .channel('products-realtime')
-        .on(
-          'postgres_changes',
-          { event: 'UPDATE', schema: 'public', table: 'Products' },
-          (payload) => {
-            setProducts(prev =>
-              prev.map(p => p.id === payload.new.id ? payload.new : p)
-            )
-          }
-        )
-        .subscribe()
-    }
-
-    init()
+    const subscription = supabase
+      .channel('products-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'Products' },
+        (payload) => {
+          setProducts(prev =>
+            prev.map(p => p.id === payload.new.id ? payload.new : p)
+          )
+        }
+      )
+      .subscribe()
 
     return () => {
-      if (subscription) supabase.removeChannel(subscription)
+      supabase.removeChannel(subscription)
     }
-  }, [])
+  }, [isOffline])
 
   async function getProducts() {
     const { data, error } = await supabase
@@ -102,9 +107,31 @@ const Products = ({ navigation, route }) => {
       .select('*')
 
     if (error) {
-      alert(error.message)
+      console.log('fetch error, falling back to cache:', error.message)
+      await loadFromCache()
     } else {
       setProducts(data)
+      setIsFromCache(false)
+      try {
+        await FileSystem.writeAsStringAsync(CACHE_PATH, JSON.stringify(data))
+      } catch (cacheError) {
+        console.log('cache write error:', cacheError)
+      }
+    }
+  }
+
+  async function loadFromCache() {
+    try {
+      const fileInfo = await FileSystem.getInfoAsync(CACHE_PATH)
+      if (!fileInfo.exists) {
+        console.log('no cache file available yet')
+        return
+      }
+      const cached = await FileSystem.readAsStringAsync(CACHE_PATH)
+      setProducts(JSON.parse(cached))
+      setIsFromCache(true)
+    } catch (error) {
+      console.log('cache read error:', error)
     }
   }
 
@@ -121,6 +148,8 @@ const Products = ({ navigation, route }) => {
   }
 
   async function loadWishlistStatus() {
+    if (isOffline) return
+
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
@@ -197,12 +226,15 @@ const Products = ({ navigation, route }) => {
     }
   }
 
-  // toggles wishlist state — adds if not saved, removes if already saved
   async function toggleWishlist(productId) {
+    if (isOffline) {
+      alert('Wishlist requires an internet connection')
+      return
+    }
+
     const existingRowId = wishlistMap[productId]
 
     if (existingRowId) {
-      // already saved — remove it
       const { error } = await supabase
         .from('Wishlist')
         .delete()
@@ -220,7 +252,6 @@ const Products = ({ navigation, route }) => {
       })
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     } else {
-      // not saved — add it
       const { data: { user } } = await supabase.auth.getUser()
 
       const { data, error } = await supabase
@@ -249,6 +280,15 @@ const Products = ({ navigation, route }) => {
         </View>
 
         <Text style={[styles.pageTitle, { color: textColor }]}>Our Products</Text>
+
+        {isFromCache && (
+          <View style={[styles.cacheBanner, { backgroundColor: chipBg }]}>
+            <Ionicons name="cloud-offline-outline" size={14} color={mutedText} />
+            <Text style={[styles.cacheBannerText, { color: mutedText }]}>
+              Showing saved products — connect to the internet for the latest catalog
+            </Text>
+          </View>
+        )}
 
         <View style={[styles.search, { backgroundColor: cardBg, borderColor }]}>
           <Ionicons name="search-outline" size={18} color={mutedText} />
@@ -288,7 +328,9 @@ const Products = ({ navigation, route }) => {
             <View style={styles.emptyState}>
               <Ionicons name="search-outline" size={40} color={mutedText} />
               <Text style={[styles.emptytext, { color: textColor }]}>
-                No products match your search
+                {isOffline && products.length === 0
+                  ? 'No cached products available — connect to the internet'
+                  : 'No products match your search'}
               </Text>
             </View>
           ) : (
@@ -299,7 +341,10 @@ const Products = ({ navigation, route }) => {
 
               return (
                 <View key={product.id} style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
-                  <View style={styles.cardTopRow}>
+                  <TouchableOpacity
+                    style={styles.cardTopRow}
+                    onPress={() => navigation.navigate('ProductDetail', { id: product.id })}
+                  >
                     <View style={[styles.productImageWrap, { backgroundColor: chipBg }]}>
                       {image ? (
                         <Image source={image} style={styles.productImage} resizeMode="contain" />
@@ -313,7 +358,7 @@ const Products = ({ navigation, route }) => {
                       <Text style={styles.productcategory}>{product.category}</Text>
                       <Text style={styles.productprice}>{product.price} {selectedcurrency}</Text>
                     </View>
-                  </View>
+                  </TouchableOpacity>
 
                   <Text style={[
                     styles.stockbadge,
@@ -401,6 +446,20 @@ const styles = StyleSheet.create({
 
   pageTitle: { fontSize: 22, fontWeight: '700', textAlign: 'center', marginBottom: 16 },
 
+  cacheBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    padding: 10,
+    borderRadius: 12,
+  },
+  cacheBannerText: {
+    fontSize: 12,
+    flex: 1,
+  },
+
   search: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     marginHorizontal: 20, marginBottom: 12, borderRadius: 14, borderWidth: 1,
@@ -419,7 +478,7 @@ const styles = StyleSheet.create({
 
   productsbox: { paddingHorizontal: 16, paddingBottom: 32, gap: 14 },
 
-  emptyState: { alignItems: 'center', marginTop: 60, gap: 10 },
+  emptyState: { alignItems: 'center', marginTop: 60, gap: 10, paddingHorizontal: 30 },
   emptytext: { textAlign: 'center', fontSize: 15, fontWeight: '600' },
 
   card: {

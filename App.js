@@ -18,6 +18,7 @@ import Checkout from './screens/Checkout';
 import Tabnavigator from './navigation/Tabnavigator';
 import Imagepicker from './screens/Imagepicker';
 import Orderhistory from './screens/Orderhistory';
+import ProductDetail from './screens/ProductDetail';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -49,6 +50,7 @@ function RootStack() {
       <Stack.Screen name="Storelocator" component={Storelocator} />
       <Stack.Screen name="Imagepicker" component={Imagepicker} />
       <Stack.Screen name="Orderhistory" component={Orderhistory} />
+      <Stack.Screen name="ProductDetail" component={ProductDetail} />
 
     </Stack.Navigator>
   );
@@ -79,6 +81,7 @@ const linking = {
       Checkout:     'checkout',
       Barcodescanner: 'barcode',
       Storelocator: 'stores',
+      ProductDetail: 'products/:id',
     }
   },
 

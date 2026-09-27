@@ -1,29 +1,26 @@
 {
   "expo": {
     "scheme": "shopapp",
-    "name": "Shop-app",
+    "name": "Luxe Éclat",
     "slug": "Shop-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#f9f7f6"
     },
     "ios": {
       "supportsTablet": true,
-      "config": {
-        "googleMapsApiKey": "AIzaSyDEelfwEglviGAOks4DySeuM2loEE-byrI"
-      },
       "bundleIdentifier": "com.anonymous.Shop-app"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#f9f7f6"
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
@@ -35,7 +32,6 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-secure-store",
       "expo-sqlite",
       [
         "expo-image-picker",

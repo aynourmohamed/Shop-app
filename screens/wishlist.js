@@ -8,19 +8,6 @@ import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-const productImageMap = {
-  'oud': require('../assets/images/oud 3 no bg.png'),
-  'aromatherapy': require('../assets/images/aroma 2 no bg.png'),
-  'candle making kit': require('../assets/images/Candle kit no bg.png'),
-};
-
-function getProductImage(product) {
-  const key = Object.keys(productImageMap).find((k) =>
-    product?.name?.toLowerCase().includes(k)
-  );
-  return key ? productImageMap[key] : null;
-}
-
 const Wishlist = () => {
 
   const { theme, isLowBattery, selectedcurrency } = useTheme()
@@ -113,6 +100,7 @@ const Wishlist = () => {
           name: product.name,
           price: product.price,
           category: product.category,
+          imageurl: product.imageurl || null,
           quantity: 1,
         }]
       }
@@ -196,7 +184,6 @@ const Wishlist = () => {
             </View>
           ) : (
             visibleWishlist.map((item) => {
-              const image = getProductImage(item.Products)
               const stock = item.Products?.stock
               const outOfStock = stock === 0
               const productId = item.Products?.id
@@ -206,8 +193,8 @@ const Wishlist = () => {
                 <View key={item.id} style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
                   <View style={styles.cardTopRow}>
                     <View style={[styles.productImageWrap, { backgroundColor: chipBg }]}>
-                      {image ? (
-                        <Image source={image} style={styles.productImage} resizeMode="contain" />
+                      {item.Products?.imageurl ? (
+                        <Image source={{ uri: item.Products.imageurl }} style={styles.productImage} resizeMode="cover" />
                       ) : (
                         <Ionicons name="flame-outline" size={26} color="#c2b5be" />
                       )}
@@ -303,7 +290,7 @@ const styles = StyleSheet.create({
     width: 64, height: 64, borderRadius: 12,
     alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
   },
-  productImage: { width: '85%', height: '85%' },
+  productImage: { width: '100%', height: '100%' },
 
   productname: { fontSize: 16, fontWeight: '700', marginBottom: 4 },
   productcategory: {

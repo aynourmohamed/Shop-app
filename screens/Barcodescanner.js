@@ -1,24 +1,11 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useState } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from "../lib/supabase";
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useTheme } from '../context/ThemeContext';
 import Ionicons from '@expo/vector-icons/Ionicons';
-
-const productImageMap = {
-  'oud': require('../assets/images/oud 3 no bg.png'),
-  'aromatherapy': require('../assets/images/aroma 2 no bg.png'),
-  'candle making kit': require('../assets/images/Candle kit no bg.png'),
-};
-
-function getProductImage(product) {
-  const key = Object.keys(productImageMap).find((k) =>
-    product.name?.toLowerCase().includes(k)
-  );
-  return key ? productImageMap[key] : null;
-}
 
 const Barcodescanner = ({ navigation }) => {
 
@@ -31,7 +18,7 @@ const Barcodescanner = ({ navigation }) => {
 
   const [facing, setFacing] = useState('back');
   const [permission, requestPermission] = useCameraPermissions();
-  const [scanned, setScanned] = useState(false)
+  const[scanned,setScanned] = useState(false)
   const [product, setProduct] = useState(null)
 
   if (!permission) {
@@ -55,21 +42,21 @@ const Barcodescanner = ({ navigation }) => {
     );
   }
 
-  async function handleBarcodeScan({ data }) {
+  async function handleBarcodeScan({data}) {
     if (scanned) return
     setScanned(true)
 
-    const { data: products, error } = await supabase
-      .from('Products')
-      .select('*')
-      .eq('barcode', data)
-      .single()
+    const {data: products, error} = await supabase
+    .from('Products')
+    .select('*')
+    .eq('barcode', data)
+    .single()
 
     if (error || !products) {
-      alert('Product not found for this barcode')
-      setScanned(false)
+        alert('Product not found for this barcode')
+        setScanned(false)
     } else {
-      setProduct(products)
+        setProduct(products)
     }
   }
 
@@ -85,7 +72,7 @@ const Barcodescanner = ({ navigation }) => {
     } else {
       await AsyncStorage.setItem('cart', JSON.stringify([
         ...cart,
-        { id: product.id, name: product.name, price: product.price, category: product.category, quantity: 1 }
+        { id: product.id, name: product.name, price: product.price, category: product.category, imageurl: product.imageurl || null, quantity: 1 }
       ]))
     }
     alert('Added to Cart')
@@ -97,26 +84,23 @@ const Barcodescanner = ({ navigation }) => {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
   }
 
-  const productImage = product ? getProductImage(product) : null
-
   return (
     <View style={styles.container}>
 
-      <CameraView style={styles.camera} facing={facing} onBarcodeScanned={handleBarcodeScan} />
+        <CameraView style={styles.camera} facing={facing} onBarcodeScanned={handleBarcodeScan} />
 
-      {/* close button — top left, respects safe area */}
-      <SafeAreaView edges={['top']} style={styles.topOverlay}>
-        <TouchableOpacity style={styles.closeIconButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="close" size={22} color="white" />
-        </TouchableOpacity>
-      </SafeAreaView>
+        <SafeAreaView edges={['top']} style={styles.topOverlay}>
+          <TouchableOpacity style={styles.closeIconButton} onPress={() => navigation.goBack()}>
+            <Ionicons name="close" size={22} color="white" />
+          </TouchableOpacity>
+        </SafeAreaView>
 
-      {!product && (
-        <View pointerEvents="none" style={styles.frameOverlay}>
-          <View style={styles.frame} />
-          <Text style={styles.frameHint}>Align barcode within the frame</Text>
-        </View>
-      )}
+        {!product && (
+          <View pointerEvents="none" style={styles.frameOverlay}>
+            <View style={styles.frame} />
+            <Text style={styles.frameHint}>Align barcode within the frame</Text>
+          </View>
+        )}
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
@@ -126,34 +110,33 @@ const Barcodescanner = ({ navigation }) => {
       </View>
 
       {product && (
-        <View style={[styles.productbox, { backgroundColor: cardBg }]}>
-          <View style={styles.productTopRow}>
-            <View style={[styles.productImageWrap, { backgroundColor: chipBg }]}>
-              {productImage ? (
-                <Image source={productImage} style={styles.productImage} resizeMode="contain" />
-              ) : (
-                <Ionicons name="flame-outline" size={24} color="#c2b5be" />
-              )}
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.productname, { color: textColor }]}>{product.name}</Text>
-              <Text style={styles.productcategory}>{product.category}</Text>
-            </View>
+      <View style={[styles.productbox, { backgroundColor: cardBg }]}>
+        <View style={styles.productTopRow}>
+          <View style={[styles.productImageWrap, { backgroundColor: chipBg }]}>
+            {product.imageurl ? (
+              <Image source={{ uri: product.imageurl }} style={styles.productImage} resizeMode="cover" />
+            ) : (
+              <Ionicons name="flame-outline" size={24} color="#c2b5be" />
+            )}
           </View>
-
-          <Text style={styles.productprice}>{product.price} {selectedcurrency}</Text>
-
-          <TouchableOpacity style={[styles.againbutton, { backgroundColor: chipBg }]} onPress={() => {
-            setScanned(false)
-            setProduct(null)
-          }}>
-            <Text style={[styles.againtext, { color: textColor }]}>Scan Again</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.addtocartbutton} onPress={() => addtoCart(product)}>
-            <Text style={styles.addtocarttext}>Add to Cart</Text>
-          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.productname, { color: textColor }]}>{product.name}</Text>
+            <Text style={styles.productcategory}>{product.category}</Text>
+          </View>
         </View>
+
+        <Text style={styles.productprice}>{product.price} {selectedcurrency}</Text>
+
+        <TouchableOpacity style={[styles.againbutton, { backgroundColor: chipBg }]} onPress={() => {
+            setScanned(false)
+            setProduct(null) }}>
+          <Text style={[styles.againtext, { color: textColor }]}>Scan Again</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.addtocartbutton} onPress={() => addtoCart(product)}>
+          <Text style={styles.addtocarttext}>Add to Cart</Text>
+        </TouchableOpacity>
+      </View>
 
       )}
     </View>
@@ -163,202 +146,69 @@ const Barcodescanner = ({ navigation }) => {
 export default Barcodescanner
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#161512',
-  },
-
-  safearea: {
-    flex: 1,
-  },
+  container: { flex: 1, backgroundColor: '#161512' },
+  safearea: { flex: 1 },
 
   permissionContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 30,
+    flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 30,
   },
-
-  closeButton: {
-    position: 'absolute',
-    top: 8,
-    left: 16,
-    padding: 8,
-  },
-
-  message: {
-    textAlign: 'center',
-    paddingBottom: 16,
-    fontSize: 15,
-  },
-
+  closeButton: { position: 'absolute', top: 8, left: 16, padding: 8 },
+  message: { textAlign: 'center', paddingBottom: 16, fontSize: 15 },
   permissionbutton: {
-    backgroundColor: '#c2b5be',
-    paddingVertical: 12,
-    paddingHorizontal: 28,
-    borderRadius: 20,
+    backgroundColor: '#c2b5be', paddingVertical: 12, paddingHorizontal: 28, borderRadius: 20,
   },
+  permissionbuttontext: { color: 'white', fontWeight: '700' },
 
-  permissionbuttontext: {
-    color: 'white',
-    fontWeight: '700',
-  },
+  camera: { flex: 1 },
 
-  camera: {
-    flex: 1,
-  },
-
-  topOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    zIndex: 10,
-    elevation: 10,
-  },
-
+  topOverlay: { position: 'absolute', top: 0, left: 0, zIndex: 10, elevation: 10 },
   closeIconButton: {
-    marginTop: 8,
-    marginLeft: 16,
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: 'rgba(44,31,31,0.55)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 11,
-    elevation: 11,
+    marginTop: 8, marginLeft: 16, width: 38, height: 38, borderRadius: 19,
+    backgroundColor: 'rgba(44,31,31,0.55)', alignItems: 'center', justifyContent: 'center',
   },
 
   frameOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 5,
-    elevation: 5,
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    alignItems: 'center', justifyContent: 'center', zIndex: 5, elevation: 5,
   },
-
   frame: {
-    width: '75%',
-    height: 140,
-    borderWidth: 2,
-    borderColor: '#c2b5be',
-    borderRadius: 16,
+    width: '75%', height: 140, borderWidth: 2, borderColor: '#c2b5be', borderRadius: 16,
   },
-
-  frameHint: {
-    color: 'white',
-    marginTop: 16,
-    fontSize: 13,
-    fontWeight: '600',
-  },
+  frameHint: { color: 'white', marginTop: 16, fontSize: 13, fontWeight: '600' },
 
   buttonContainer: {
-    position: 'absolute',
-    bottom: 64,
-    flexDirection: 'row',
-    backgroundColor: 'transparent',
-    width: '100%',
-    justifyContent: 'center',
-    zIndex: 10,
-    elevation: 10,
+    position: 'absolute', bottom: 64, flexDirection: 'row', backgroundColor: 'transparent',
+    width: '100%', justifyContent: 'center', zIndex: 10, elevation: 10,
   },
-
   button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(44,31,31,0.55)',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 24,
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: 'rgba(44,31,31,0.55)', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 24,
   },
-
-  text: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: 'white',
-  },
+  text: { fontSize: 15, fontWeight: '700', color: 'white' },
 
   productbox: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    padding: 24,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 8,
+    position: 'absolute', bottom: 0, width: '100%', padding: 24,
+    borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    shadowColor: '#000', shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.15, shadowRadius: 10, elevation: 8,
   },
 
-  productTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 8,
-  },
-
+  productTopRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 },
   productImageWrap: {
-    width: 52,
-    height: 52,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
+    width: 52, height: 52, borderRadius: 12,
+    alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
   },
+  productImage: { width: '100%', height: '100%' },
 
-  productImage: {
-    width: '80%',
-    height: '80%',
-  },
-
-  productname: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 2,
-  },
-
+  productname: { fontSize: 18, fontWeight: '700', marginBottom: 2 },
   productcategory: {
-    fontSize: 12,
-    color: '#8A7A82',
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
+    fontSize: 12, color: '#8A7A82', textTransform: 'uppercase', letterSpacing: 0.4,
   },
+  productprice: { fontSize: 15, color: '#c2b5be', fontWeight: '700', marginBottom: 16 },
 
-  productprice: {
-    fontSize: 15,
-    color: '#c2b5be',
-    fontWeight: '700',
-    marginBottom: 16,
-  },
+  againbutton: { padding: 14, borderRadius: 14, alignItems: 'center', marginBottom: 12 },
+  againtext: { fontWeight: '700' },
 
-  againbutton: {
-    padding: 14,
-    borderRadius: 14,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-
-  againtext: {
-    fontWeight: '700',
-  },
-
-  addtocartbutton: {
-    backgroundColor: '#c2b5be',
-    padding: 14,
-    borderRadius: 14,
-    alignItems: 'center',
-  },
-
-  addtocarttext: {
-    fontWeight: '700',
-    color: 'white',
-  },
-
+  addtocartbutton: { backgroundColor: '#c2b5be', padding: 14, borderRadius: 14, alignItems: 'center' },
+  addtocarttext: { fontWeight: '700', color: 'white' },
 })

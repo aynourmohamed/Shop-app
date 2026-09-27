@@ -12,19 +12,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 const CACHE_PATH = FileSystem.documentDirectory + 'products_cache.json';
 
-const productImageMap = {
-  'oud': require('../assets/images/oud 3 no bg.png'),
-  'aromatherapy': require('../assets/images/aroma 2 no bg.png'),
-  'candle making kit': require('../assets/images/Candle kit no bg.png'),
-};
-
-function getProductImage(product) {
-  const key = Object.keys(productImageMap).find((k) =>
-    product.name?.toLowerCase().includes(k)
-  );
-  return key ? productImageMap[key] : null;
-}
-
 const Products = ({ navigation, route }) => {
 
   const { theme, isLowBattery, selectedcurrency } = useTheme()
@@ -188,6 +175,7 @@ const Products = ({ navigation, route }) => {
           name: product.name,
           price: product.price,
           category: product.category,
+          imageurl: product.imageurl || null,
           quantity: 1,
         }]
       }
@@ -335,7 +323,6 @@ const Products = ({ navigation, route }) => {
             </View>
           ) : (
             visibleProducts.map((product) => {
-              const image = getProductImage(product)
               const quantityInCart = cartQuantities[product.id] || 0
               const isWishlisted = Boolean(wishlistMap[product.id])
 
@@ -346,8 +333,8 @@ const Products = ({ navigation, route }) => {
                     onPress={() => navigation.navigate('ProductDetail', { id: product.id })}
                   >
                     <View style={[styles.productImageWrap, { backgroundColor: chipBg }]}>
-                      {image ? (
-                        <Image source={image} style={styles.productImage} resizeMode="contain" />
+                      {product.imageurl ? (
+                        <Image source={{ uri: product.imageurl }} style={styles.productImage} resizeMode="cover" />
                       ) : (
                         <Ionicons name="flame-outline" size={26} color="#c2b5be" />
                       )}
@@ -455,10 +442,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 12,
   },
-  cacheBannerText: {
-    fontSize: 12,
-    flex: 1,
-  },
+  cacheBannerText: { fontSize: 12, flex: 1 },
 
   search: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
@@ -493,7 +477,7 @@ const styles = StyleSheet.create({
     width: 72, height: 72, borderRadius: 12,
     alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
   },
-  productImage: { width: '85%', height: '85%' },
+  productImage: { width: '100%', height: '100%' },
 
   productname: { fontSize: 16, fontWeight: '700', marginBottom: 2 },
   productcategory: {

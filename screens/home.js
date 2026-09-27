@@ -31,21 +31,8 @@ const slides = [
     },
 ];
 
-// matches known products to bundled images until Products table has a real image column
-const productImageMap = {
-    'oud': require('../assets/images/oud 3 no bg.png'),
-    'aromatherapy': require('../assets/images/aroma 2 no bg.png'),
-    'candle making kit': require('../assets/images/Candle kit no bg.png'),
-};
-
-function getPickImage(product) {
-    const key = Object.keys(productImageMap).find((k) =>
-        product.name?.toLowerCase().includes(k)
-    );
-    return key ? productImageMap[key] : null;
-}
-
 // picks one product per category first, then fills remaining slots
+// so Home doesn't just show the first 3 rows of the same category
 function pickFeatured(products, maxCount) {
     const byCategory = {};
     products.forEach((product) => {
@@ -169,7 +156,6 @@ const Home = () => {
                     </View>
                 )}
 
-                {/* header: logo + scan shortcut */}
                 <View style={styles.headerRow}>
                     <Image
                         source={require('../assets/images/logo no bg.png')}
@@ -184,7 +170,6 @@ const Home = () => {
                     </TouchableOpacity>
                 </View>
 
-                {/* greeting */}
                 <View style={styles.greetingWrap}>
                     <Text style={[styles.greeting, { color: textColor }]}>
                         {getGreeting()}{firstName ? `, ${firstName}` : ''}
@@ -194,7 +179,6 @@ const Home = () => {
                     </Text>
                 </View>
 
-                {/* cart resume card */}
                 {cartCount > 0 && (
                     <TouchableOpacity
                         style={[styles.resumeCard, { backgroundColor: cardBg, borderColor }]}
@@ -215,7 +199,6 @@ const Home = () => {
                     </TouchableOpacity>
                 )}
 
-                {/* hero carousel */}
                 <View style={[styles.heroContainer, { height: HERO_HEIGHT }]}>
                     <ScrollView
                         ref={heroScrollRef}
@@ -252,7 +235,6 @@ const Home = () => {
                     </View>
                 </View>
 
-                {/* category chips — only shown once there's more than one category */}
                 {categories.length > 1 && (
                     <View style={styles.chipsSection}>
                         <Text style={[styles.sectionTitle, { color: textColor }]}>Shop by Category</Text>
@@ -274,7 +256,6 @@ const Home = () => {
                     </View>
                 )}
 
-                {/* picks for this season */}
                 <View style={styles.picksSection}>
                     <View style={styles.picksHeaderRow}>
                         <Text style={[styles.picksTitle, { color: textColor }]}>Picks for this Season</Text>
@@ -295,42 +276,38 @@ const Home = () => {
                             showsHorizontalScrollIndicator={false}
                             contentContainerStyle={styles.picksRow}
                         >
-                            {picks.map((product) => {
-                                const image = getPickImage(product);
-                                return (
-                                    <TouchableOpacity
-                                        key={product.id}
-                                        style={[styles.pickCard, { width: PICK_CARD_WIDTH, backgroundColor: cardBg, borderColor }]}
-                                        onPress={() => navigation.navigate('Products', { category: product.category })}
-                                    >
-                                        <View style={[styles.pickImageWrap, { backgroundColor: chipBg }]}>
-                                            {image ? (
-                                                <Image source={image} style={styles.pickImage} resizeMode="contain" />
-                                            ) : (
-                                                <Ionicons name="flame-outline" size={32} color="#c2b5be" />
-                                            )}
-                                        </View>
-
-                                        {product.stock > 0 && product.stock < 5 && (
-                                            <View style={styles.lowstockBadge}>
-                                                <Text style={styles.lowstockText}>{product.stock} left</Text>
-                                            </View>
+                            {picks.map((product) => (
+                                <TouchableOpacity
+                                    key={product.id}
+                                    style={[styles.pickCard, { width: PICK_CARD_WIDTH, backgroundColor: cardBg, borderColor }]}
+                                    onPress={() => navigation.navigate('ProductDetail', { id: product.id })}
+                                >
+                                    <View style={[styles.pickImageWrap, { backgroundColor: chipBg }]}>
+                                        {product.imageurl ? (
+                                            <Image source={{ uri: product.imageurl }} style={styles.pickImage} resizeMode="cover" />
+                                        ) : (
+                                            <Ionicons name="flame-outline" size={32} color="#c2b5be" />
                                         )}
+                                    </View>
 
-                                        <Text style={[styles.pickName, { color: textColor }]} numberOfLines={2}>
-                                            {product.name}
-                                        </Text>
-                                        <Text style={styles.pickPrice}>
-                                            {product.price} {selectedcurrency}
-                                        </Text>
-                                    </TouchableOpacity>
-                                );
-                            })}
+                                    {product.stock > 0 && product.stock < 5 && (
+                                        <View style={styles.lowstockBadge}>
+                                            <Text style={styles.lowstockText}>{product.stock} left</Text>
+                                        </View>
+                                    )}
+
+                                    <Text style={[styles.pickName, { color: textColor }]} numberOfLines={2}>
+                                        {product.name}
+                                    </Text>
+                                    <Text style={styles.pickPrice}>
+                                        {product.price} {selectedcurrency}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
                         </ScrollView>
                     )}
                 </View>
 
-                {/* app-only actions */}
                 <View style={[styles.actionsSection, { backgroundColor: cardBg }]}>
                     <View style={styles.actionsRow}>
                         <TouchableOpacity
@@ -359,7 +336,6 @@ const Home = () => {
                     </View>
                 </View>
 
-                {/* closing footer */}
                 <View style={styles.footer}>
                     <Image
                         source={require('../assets/images/logo no bg.png')}
@@ -382,13 +358,8 @@ const Home = () => {
 export default Home;
 
 const styles = StyleSheet.create({
-    safearea: {
-        flex: 1,
-    },
-
-    screen: {
-        flex: 1,
-    },
+    safearea: { flex: 1 },
+    screen: { flex: 1 },
 
     headerRow: {
         flexDirection: 'row',
@@ -398,330 +369,107 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
 
-    logoImage: {
-        width: 150,
-        height: 70,
-    },
+    logoImage: { width: 150, height: 70 },
 
     scanIconButton: {
-        width: 42,
-        height: 42,
-        borderRadius: 21,
+        width: 42, height: 42, borderRadius: 21,
         backgroundColor: '#c2b5be',
-        alignItems: 'center',
-        justifyContent: 'center',
+        alignItems: 'center', justifyContent: 'center',
     },
 
-    greetingWrap: {
-        paddingHorizontal: 20,
-        marginTop: 4,
-        marginBottom: 14,
-    },
-
-    greeting: {
-        fontSize: 22,
-        fontWeight: '700',
-    },
-
-    greetingSub: {
-        fontSize: 13,
-        marginTop: 2,
-    },
+    greetingWrap: { paddingHorizontal: 20, marginTop: 4, marginBottom: 14 },
+    greeting: { fontSize: 22, fontWeight: '700' },
+    greetingSub: { fontSize: 13, marginTop: 2 },
 
     resumeCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-        marginHorizontal: 20,
-        marginBottom: 16,
-        padding: 14,
-        borderRadius: 14,
-        borderWidth: 1,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 6,
-        elevation: 2,
+        flexDirection: 'row', alignItems: 'center', gap: 12,
+        marginHorizontal: 20, marginBottom: 16, padding: 14, borderRadius: 14, borderWidth: 1,
+        shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
     },
+    resumeIcon: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
+    resumeTitle: { fontSize: 14, fontWeight: '600' },
+    resumeTotal: { fontSize: 13, color: '#c2b5be', fontWeight: '700', marginTop: 2 },
 
-    resumeIcon: {
-        width: 38,
-        height: 38,
-        borderRadius: 19,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-
-    resumeTitle: {
-        fontSize: 14,
-        fontWeight: '600',
-    },
-
-    resumeTotal: {
-        fontSize: 13,
-        color: '#c2b5be',
-        fontWeight: '700',
-        marginTop: 2,
-    },
-
-    heroContainer: {
-        width: '100%',
-        marginBottom: 20,
-    },
-
-    heroSlide: {
-        width: SCREEN_WIDTH,
-    },
-
-    heroImage: {
-        width: '100%',
-        height: '100%',
-    },
-
+    heroContainer: { width: '100%', marginBottom: 20 },
+    heroSlide: { width: SCREEN_WIDTH },
+    heroImage: { width: '100%', height: '100%' },
     heroOverlay: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
+        position: 'absolute', width: '100%', height: '100%',
         backgroundColor: 'rgba(44, 31, 31, 0.45)',
     },
-
     heroTextWrap: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 24,
+        position: 'absolute', width: '100%', height: '100%',
+        alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24,
     },
-
     heroTitle: {
-        color: '#f9f7f6',
-        fontSize: 20,
-        fontWeight: '700',
-        textAlign: 'center',
-        marginBottom: 4,
+        color: '#f9f7f6', fontSize: 20, fontWeight: '700',
+        textAlign: 'center', marginBottom: 4,
     },
+    heroSubtitle: { color: '#EDE6EA', fontSize: 14, textAlign: 'center', marginBottom: 16 },
+    heroButton: { backgroundColor: '#c2b5be', paddingVertical: 10, paddingHorizontal: 24, borderRadius: 20 },
+    heroButtonText: { color: 'white', fontWeight: '700', fontSize: 13 },
 
-    heroSubtitle: {
-        color: '#EDE6EA',
-        fontSize: 14,
-        textAlign: 'center',
-        marginBottom: 16,
-    },
+    dotsRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 12 },
+    dot: { width: 20, height: 3, borderRadius: 2, backgroundColor: '#EDE3E8' },
+    dotActive: { backgroundColor: '#c2b5be' },
 
-    heroButton: {
-        backgroundColor: '#c2b5be',
-        paddingVertical: 10,
-        paddingHorizontal: 24,
-        borderRadius: 20,
-    },
+    chipsSection: { marginBottom: 20 },
+    sectionTitle: { fontSize: 16, fontWeight: '700', paddingHorizontal: 20, marginBottom: 10 },
+    chipsRow: { paddingHorizontal: 20, gap: 8 },
+    chip: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20 },
+    chipText: { fontSize: 13, fontWeight: '600', textTransform: 'capitalize' },
 
-    heroButtonText: {
-        color: 'white',
-        fontWeight: '700',
-        fontSize: 13,
-    },
-
-    dotsRow: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        gap: 6,
-        marginTop: 12,
-    },
-
-    dot: {
-        width: 20,
-        height: 3,
-        borderRadius: 2,
-        backgroundColor: '#EDE3E8',
-    },
-
-    dotActive: {
-        backgroundColor: '#c2b5be',
-    },
-
-    chipsSection: {
-        marginBottom: 20,
-    },
-
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: '700',
-        paddingHorizontal: 20,
-        marginBottom: 10,
-    },
-
-    chipsRow: {
-        paddingHorizontal: 20,
-        gap: 8,
-    },
-
-    chip: {
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        borderRadius: 20,
-    },
-
-    chipText: {
-        fontSize: 13,
-        fontWeight: '600',
-        textTransform: 'capitalize',
-    },
-
-    picksSection: {
-        marginBottom: 24,
-    },
-
+    picksSection: { marginBottom: 24 },
     picksHeaderRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        marginBottom: 12,
+        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+        paddingHorizontal: 20, marginBottom: 12,
     },
+    picksTitle: { fontSize: 18, fontWeight: '700', letterSpacing: 0.3 },
+    seeAllText: { fontSize: 13, fontWeight: '700', color: '#c2b5be' },
 
-    picksTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        letterSpacing: 0.3,
-    },
+    emptytext: { fontSize: 14, textAlign: 'center', marginVertical: 30, paddingHorizontal: 20 },
 
-    seeAllText: {
-        fontSize: 13,
-        fontWeight: '700',
-        color: '#c2b5be',
-    },
-
-    emptytext: {
-        fontSize: 14,
-        textAlign: 'center',
-        marginVertical: 30,
-        paddingHorizontal: 20,
-    },
-
-    picksRow: {
-        paddingHorizontal: 20,
-        gap: 14,
-    },
-
+    picksRow: { paddingHorizontal: 20, gap: 14 },
     pickCard: {
-        borderRadius: 18,
-        padding: 14,
-        borderWidth: 1,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.04,
-        shadowRadius: 8,
-        elevation: 1,
+        borderRadius: 18, padding: 14, borderWidth: 1,
+        shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04, shadowRadius: 8, elevation: 1,
     },
-
     pickImageWrap: {
-        width: '100%',
-        height: 110,
-        borderRadius: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 10,
-        overflow: 'hidden',
+        width: '100%', height: 110, borderRadius: 12,
+        alignItems: 'center', justifyContent: 'center', marginBottom: 10, overflow: 'hidden',
     },
-
-    pickImage: {
-        width: '80%',
-        height: '80%',
-    },
+    pickImage: { width: '100%', height: '100%' },
 
     lowstockBadge: {
-        position: 'absolute',
-        top: 10,
-        right: 10,
-        backgroundColor: '#FBF0E1',
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-        borderRadius: 10,
+        position: 'absolute', top: 10, right: 10,
+        backgroundColor: '#FBF0E1', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10,
     },
+    lowstockText: { fontSize: 10, fontWeight: '700', color: '#C2883C' },
 
-    lowstockText: {
-        fontSize: 10,
-        fontWeight: '700',
-        color: '#C2883C',
-    },
-
-    pickName: {
-        fontSize: 14,
-        fontWeight: '700',
-        marginBottom: 2,
-        lineHeight: 18,
-    },
-
-    pickPrice: {
-        fontSize: 13,
-        fontWeight: '700',
-        color: '#c2b5be',
-    },
+    pickName: { fontSize: 14, fontWeight: '700', marginBottom: 2, lineHeight: 18 },
+    pickPrice: { fontSize: 13, fontWeight: '700', color: '#c2b5be' },
 
     actionsSection: {
-        borderTopLeftRadius: 28,
-        borderTopRightRadius: 28,
-        paddingTop: 20,
-        paddingBottom: 24,
-        paddingHorizontal: 16,
+        borderTopLeftRadius: 28, borderTopRightRadius: 28,
+        paddingTop: 20, paddingBottom: 24, paddingHorizontal: 16,
     },
-
-    actionsRow: {
-        flexDirection: 'row',
-        gap: 10,
-    },
-
+    actionsRow: { flexDirection: 'row', gap: 10 },
     actionTile: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 6,
-        paddingVertical: 16,
-        borderRadius: 14,
+        flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6,
+        paddingVertical: 16, borderRadius: 14,
     },
+    actionText: { fontSize: 12, fontWeight: '600' },
 
-    actionText: {
-        fontSize: 12,
-        fontWeight: '600',
-    },
-
-    footer: {
-        alignItems: 'center',
-        paddingVertical: 32,
-        paddingHorizontal: 24,
-        gap: 6,
-    },
-
-    footerLogo: {
-        width: 100,
-        height: 50,
-        marginBottom: 4,
-        opacity: 0.8,
-    },
-
-    footerTagline: {
-        fontSize: 12,
-        textAlign: 'center',
-    },
-
-    footerCopyright: {
-        fontSize: 11,
-        marginTop: 6,
-    },
+    footer: { alignItems: 'center', paddingVertical: 32, paddingHorizontal: 24, gap: 6 },
+    footerLogo: { width: 100, height: 50, marginBottom: 4, opacity: 0.8 },
+    footerTagline: { fontSize: 12, textAlign: 'center' },
+    footerCopyright: { fontSize: 11, marginTop: 6 },
 
     offlinebanner: {
-        backgroundColor: '#B5504A',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: 8,
-        paddingVertical: 10,
+        backgroundColor: '#B5504A', flexDirection: 'row', justifyContent: 'center',
+        alignItems: 'center', gap: 8, paddingVertical: 10,
     },
-
-    offlinetext: {
-        color: 'white',
-        fontWeight: '700',
-        fontSize: 13,
-    },
+    offlinetext: { color: 'white', fontWeight: '700', fontSize: 13 },
 });

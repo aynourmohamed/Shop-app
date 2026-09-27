@@ -7,19 +7,6 @@ import { useTheme } from '../context/ThemeContext';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-const productImageMap = {
-  'oud': require('../assets/images/oud 3 no bg.png'),
-  'aromatherapy': require('../assets/images/aroma 2 no bg.png'),
-  'candle making kit': require('../assets/images/Candle kit no bg.png'),
-};
-
-function getProductImage(product) {
-  const key = Object.keys(productImageMap).find((k) =>
-    product?.name?.toLowerCase().includes(k)
-  );
-  return key ? productImageMap[key] : null;
-}
-
 const ProductDetail = ({ route, navigation }) => {
   const { id } = route.params || {};
 
@@ -105,6 +92,7 @@ const ProductDetail = ({ route, navigation }) => {
         name: product.name,
         price: product.price,
         category: product.category,
+        imageurl: product.imageurl || null,
         quantity: 1,
       }];
     }
@@ -180,8 +168,6 @@ const ProductDetail = ({ route, navigation }) => {
     );
   }
 
-  const image = getProductImage(product);
-
   return (
     <SafeAreaView edges={['top']} style={[styles.safearea, { backgroundColor: background }]}>
       <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
@@ -200,8 +186,8 @@ const ProductDetail = ({ route, navigation }) => {
         </View>
 
         <View style={[styles.imageWrap, { backgroundColor: chipBg }]}>
-          {image ? (
-            <Image source={image} style={styles.image} resizeMode="contain" />
+          {product.imageurl ? (
+            <Image source={{ uri: product.imageurl }} style={styles.image} resizeMode="cover" />
           ) : (
             <Ionicons name="flame-outline" size={64} color="#c2b5be" />
           )}
@@ -264,148 +250,60 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
 
   center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    paddingHorizontal: 30,
+    flex: 1, alignItems: 'center', justifyContent: 'center',
+    gap: 12, paddingHorizontal: 30,
   },
 
   notfoundtext: { fontSize: 16, fontWeight: '600' },
-
   browseButton: {
-    backgroundColor: '#c2b5be',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 20,
-    marginTop: 6,
+    backgroundColor: '#c2b5be', paddingVertical: 12, paddingHorizontal: 24,
+    borderRadius: 20, marginTop: 6,
   },
   browseButtonText: { color: 'white', fontWeight: '700' },
 
   headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 4,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingHorizontal: 16, paddingTop: 4,
   },
-
-  backButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  wishlistButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  backButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  wishlistButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
 
   imageWrap: {
-    width: '100%',
-    height: 280,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
+    width: '100%', height: 280, alignItems: 'center', justifyContent: 'center', marginBottom: 20,
   },
+  image: { width: '100%', height: '100%' },
 
-  image: {
-    width: '70%',
-    height: '70%',
-  },
-
-  infoSection: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
+  infoSection: { paddingHorizontal: 20, paddingBottom: 40 },
 
   category: {
-    fontSize: 12,
-    color: '#8A7A82',
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    marginBottom: 6,
+    fontSize: 12, color: '#8A7A82', textTransform: 'uppercase',
+    letterSpacing: 0.6, marginBottom: 6,
   },
-
-  name: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-
-  price: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#c2b5be',
-    marginBottom: 12,
-  },
+  name: { fontSize: 24, fontWeight: '700', marginBottom: 8 },
+  price: { fontSize: 20, fontWeight: '700', color: '#c2b5be', marginBottom: 12 },
 
   stockbadge: {
-    fontSize: 12,
-    fontWeight: '700',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-    marginBottom: 20,
+    fontSize: 12, fontWeight: '700', alignSelf: 'flex-start',
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, marginBottom: 20,
   },
 
   cartbutton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#c2b5be',
-    paddingVertical: 14,
-    borderRadius: 16,
-    marginBottom: 12,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: '#c2b5be', paddingVertical: 14, borderRadius: 16, marginBottom: 12,
   },
-
-  cartbuttontext: {
-    color: 'white',
-    fontSize: 15,
-    fontWeight: '700',
-  },
+  cartbuttontext: { color: 'white', fontSize: 15, fontWeight: '700' },
 
   stepper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#c2b5be',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: '#c2b5be', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 10,
     marginBottom: 12,
   },
-
-  stepperButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  stepperText: {
-    color: 'white',
-    fontWeight: '700',
-    fontSize: 16,
-  },
+  stepperButton: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  stepperText: { color: 'white', fontWeight: '700', fontSize: 16 },
 
   scanbutton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    borderRadius: 16,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    paddingVertical: 12, borderRadius: 16,
   },
-
-  scanbuttontext: {
-    fontSize: 13,
-    fontWeight: '700',
-  },
+  scanbuttontext: { fontSize: 13, fontWeight: '700' },
 });

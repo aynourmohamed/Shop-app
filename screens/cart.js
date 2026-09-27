@@ -6,19 +6,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-const productImageMap = {
-  'oud': require('../assets/images/oud 3 no bg.png'),
-  'aromatherapy': require('../assets/images/aroma 2 no bg.png'),
-  'candle making kit': require('../assets/images/Candle kit no bg.png'),
-};
-
-function getProductImage(item) {
-  const key = Object.keys(productImageMap).find((k) =>
-    item.name?.toLowerCase().includes(k)
-  );
-  return key ? productImageMap[key] : null;
-}
-
 const Cart = ({navigation}) => {
 
   const { theme } = useTheme()
@@ -98,13 +85,11 @@ const Cart = ({navigation}) => {
                 <Text style={[styles.emptytext, {color: textColor}]}>Your cart is empty</Text>
               </View>
             ) : (
-              cart.map((item, index) => {
-                const image = getProductImage(item)
-                return (
+              cart.map((item, index) => (
                 <View key={item.id || index} style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
                   <View style={[styles.imageWrap, { backgroundColor: chipBg }]}>
-                    {image ? (
-                      <Image source={image} style={styles.productImage} resizeMode="contain" />
+                    {item.imageurl ? (
+                      <Image source={{ uri: item.imageurl }} style={styles.productImage} resizeMode="cover" />
                     ) : (
                       <Ionicons name="flame-outline" size={26} color="#c2b5be" />
                     )}
@@ -131,7 +116,7 @@ const Cart = ({navigation}) => {
                     <Ionicons name="trash-outline" size={16} color="#B5504A" />
                   </TouchableOpacity>
                 </View>
-              )})
+              ))
             )}
 
         {cart.length > 0 && (
@@ -199,8 +184,8 @@ const styles = StyleSheet.create({
   },
 
   productImage: {
-    width: '85%',
-    height: '85%',
+    width: '100%',
+    height: '100%',
   },
 
   cardinfo: {

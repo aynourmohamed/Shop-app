@@ -8,19 +8,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 const Page_Size = 4
 
-const productImageMap = {
-  'oud': require('../assets/images/oud 3 no bg.png'),
-  'aromatherapy': require('../assets/images/aroma 2 no bg.png'),
-  'candle making kit': require('../assets/images/Candle kit no bg.png'),
-};
-
-function getProductImage(item) {
-  const key = Object.keys(productImageMap).find((k) =>
-    item.name?.toLowerCase().includes(k)
-  );
-  return key ? productImageMap[key] : null;
-}
-
 const Orders = () => {
 
     const { theme, isLowBattery} = useTheme()
@@ -144,13 +131,11 @@ const Orders = () => {
             {items.length === 0 ? (
               <Text style={{ color: mutedText }}>No items</Text>
             ) : (
-              items.map((item, index) => {
-                const image = getProductImage(item)
-                return (
+              items.map((item, index) => (
                 <View key={index} style={[styles.itemrow, { borderBottomColor: borderColor }]}>
                   <View style={[styles.itemImageWrap, { backgroundColor: chipBg }]}>
-                    {image ? (
-                      <Image source={image} style={styles.itemImage} resizeMode="contain" />
+                    {item.imageurl ? (
+                      <Image source={{ uri: item.imageurl }} style={styles.itemImage} resizeMode="cover" />
                     ) : (
                       <Ionicons name="flame-outline" size={20} color="#c2b5be" />
                     )}
@@ -164,7 +149,7 @@ const Orders = () => {
                     </Text>
                   </View>
                 </View>
-              )})
+              ))
             )}
           </View>
         </ScrollView>
@@ -255,202 +240,65 @@ const Orders = () => {
 export default Orders
 
 const styles = StyleSheet.create({
-  safearea: {
-    flex: 1,
-  },
+  safearea: { flex: 1 },
+  screen: { flex: 1 },
 
-  screen: {
-    flex: 1,
-  },
+  logoWrap: { alignItems: 'center', marginTop: 4, marginBottom: 4 },
+  logoImage: { width: 130, height: 65 },
 
-  logoWrap: {
-    alignItems: 'center',
-    marginTop: 4,
-    marginBottom: 4,
-  },
+  title: { fontSize: 22, fontWeight: '700', textAlign: 'center', marginBottom: 16 },
 
-  logoImage: {
-    width: 130,
-    height: 65,
-  },
+  ordersbox: { paddingHorizontal: 16, paddingBottom: 32, gap: 14 },
 
-  title: {
-    fontSize: 22,
-    fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
+  emptyState: { alignItems: 'center', marginTop: 60, gap: 10 },
+  emptytext: { textAlign: 'center', fontSize: 16 },
 
-  ordersbox: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-    gap: 14,
-  },
-
-  emptyState: {
-    alignItems: 'center',
-    marginTop: 60,
-    gap: 10,
-  },
-
-  emptytext: {
-    textAlign: 'center',
-    fontSize: 16,
-  },
-
-  card: {
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-  },
+  card: { borderRadius: 16, padding: 16, borderWidth: 1 },
 
   cardrow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8,
   },
-
-  orderId: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
+  orderId: { fontSize: 16, fontWeight: '700' },
 
   statusbadge: {
-    fontSize: 12,
-    fontWeight: '700',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-    overflow: 'hidden',
+    fontSize: 12, fontWeight: '700', paddingHorizontal: 10, paddingVertical: 4,
+    borderRadius: 20, overflow: 'hidden',
   },
 
-  total: {
-    fontSize: 15,
-    color: '#c2b5be',
-    fontWeight: '700',
-    marginBottom: 4,
-  },
+  total: { fontSize: 15, color: '#c2b5be', fontWeight: '700', marginBottom: 4 },
+  date: { fontSize: 12, marginBottom: 8 },
 
-  date: {
-    fontSize: 12,
-    marginBottom: 8,
-  },
+  taprow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  taptext: { fontSize: 12, color: '#c2b5be', fontWeight: '600' },
 
-  taprow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
+  loadmorebutton: { padding: 14, borderRadius: 14, alignItems: 'center', marginTop: 4, marginBottom: 20 },
+  loadmoretext: { fontWeight: '700' },
 
-  taptext: {
-    fontSize: 12,
-    color: '#c2b5be',
-    fontWeight: '600',
-  },
+  nomoretext: { textAlign: 'center', fontSize: 14, marginTop: 10, marginBottom: 20 },
 
-  loadmorebutton: {
-    padding: 14,
-    borderRadius: 14,
-    alignItems: 'center',
-    marginTop: 4,
-    marginBottom: 20,
-  },
+  backbutton: { flexDirection: 'row', alignItems: 'center', gap: 6, padding: 16, paddingTop: 12 },
+  backtext: { fontSize: 16, color: '#c2b5be', fontWeight: '700' },
 
-  loadmoretext: {
-    fontWeight: '700',
-  },
-
-  nomoretext: {
-    textAlign: 'center',
-    fontSize: 14,
-    marginTop: 10,
-    marginBottom: 20,
-  },
-
-  backbutton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    padding: 16,
-    paddingTop: 12,
-  },
-
-  backtext: {
-    fontSize: 16,
-    color: '#c2b5be',
-    fontWeight: '700',
-  },
-
-  detailcard: {
-    marginHorizontal: 16,
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-  },
-
-  detailtitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 18,
-  },
+  detailcard: { marginHorizontal: 16, borderRadius: 16, padding: 20, borderWidth: 1 },
+  detailtitle: { fontSize: 20, fontWeight: '700', marginBottom: 18 },
 
   detailrow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12,
   },
+  detaillabel: { fontSize: 14, fontWeight: '600' },
+  detailvalue: { fontSize: 15, fontWeight: '600' },
 
-  detaillabel: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-
-  detailvalue: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
-
-  itemstitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginTop: 16,
-    marginBottom: 10,
-  },
+  itemstitle: { fontSize: 16, fontWeight: '700', marginTop: 16, marginBottom: 10 },
 
   itemrow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
+    flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderBottomWidth: 1,
   },
-
   itemImageWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
+    width: 44, height: 44, borderRadius: 10,
+    alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
   },
+  itemImage: { width: '100%', height: '100%' },
 
-  itemImage: {
-    width: '80%',
-    height: '80%',
-  },
-
-  itemname: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-
-  itemprice: {
-    fontSize: 14,
-    color: '#c2b5be',
-    fontWeight: '600',
-  },
-
+  itemname: { fontSize: 14, fontWeight: '600', marginBottom: 2 },
+  itemprice: { fontSize: 14, color: '#c2b5be', fontWeight: '600' },
 })

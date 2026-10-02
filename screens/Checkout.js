@@ -11,33 +11,33 @@ import { useTheme } from '../context/ThemeContext'
 import * as Haptics from 'expo-haptics'
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-const Checkout = ({navigation}) => {
+const Checkout = ({ navigation }) => {
 
   const { theme } = useTheme()
   const background = theme === 'dark' ? '#161512' : '#f9f7f6'
-  const textColor  = theme === 'dark' ? '#F5EDE9' : '#2C1F1F'
+  const textColor = theme === 'dark' ? '#F5EDE9' : '#2C1F1F'
   const cardBg = theme === 'dark' ? '#252220' : '#FFFFFF'
   const mutedText = theme === 'dark' ? '#B3A0A8' : '#8A7A82'
   const borderColor = theme === 'dark' ? '#3a3632' : '#EDE3E8'
 
-    const [name, setName] = useState('');
-    const [address, setAddress] = useState('');
-    const [cardNumber, setCardNumber] = useState('');
-    const [expiry, setExpiry] = useState('');
-    const [cvv, setCvv] = useState('');
+  const [name, setName] = useState('');
+  const [address, setAddress] = useState('');
+  const [cardNumber, setCardNumber] = useState('');
+  const [expiry, setExpiry] = useState('');
+  const [cvv, setCvv] = useState('');
 
-    async function sendorderNotifications() {
-        await Notifications.scheduleNotificationAsync({
-            content: {
-                title: 'Order Confirmed',
-                body: 'Your order has been placed successfully',
-            },
-            trigger: null,
-        });
-    }
+  async function sendorderNotifications() {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'Order Confirmed',
+        body: 'Your order has been placed successfully',
+      },
+      trigger: null,
+    });
+  }
 
-    async function generateAndSavePDF(cartItems, total, orderId) {
-      const itemsHTML = cartItems.map(item => `
+  async function generateAndSavePDF(cartItems, total, orderId) {
+    const itemsHTML = cartItems.map(item => `
         <tr>
         <td style="padding:8px;border-bottom:1px solid #eee">${item.name}</td>
         <td style="padding:8px;border-bottom:1px solid #eee">${item.quantity}</td>
@@ -46,7 +46,7 @@ const Checkout = ({navigation}) => {
         </tr>
       `).join('')
 
-      const html = `
+    const html = `
       <html>
         <body style="font-family:Arial;padding:30px;color:#2C1F1F">
           <h1 style="color:#c2b5be">Luxe Éclat</h1>
@@ -86,65 +86,75 @@ const Checkout = ({navigation}) => {
       })
     }
 
+  }
+
+  const handleCheckout = async () => {
+    if (!name || !address || !cardNumber || !expiry || !cvv) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return
     }
 
-    const handleCheckout = async () => {
-        if (!name || !address || !cardNumber || !expiry || !cvv) {
-            Alert.alert('Error', 'Please fill in all fields');
-            return
-        }
-
-        if (cardNumber.replace(/\s/g, '').length < 16) {
-          Alert.alert('Error', 'Enter a valid card number')
-          return
-        }
-
-        if (cvv.length < 3) {
-          Alert.alert('Error', 'Please enter a valid CVV')
-          return
-        }
-
-        const {data: {user}} = await supabase.auth.getUser()
-
-        const cartData = await AsyncStorage.getItem('cart')
-        const cartItems = cartData ? JSON.parse(cartData) : []
-
-        if (cartItems.length === 0) {
-          Alert.alert('Error', 'Your cart is empty')
-          return
-        }
-
-        const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-
-        const {data, error} = await supabase
-        .from('Orders')
-        .insert({
-          userid: user.id,
-          items: JSON.stringify(cartItems),
-          total: total,
-          status: 'pending',
-        })
-        .select()
-        .single()
-
-        if (error) {
-          Alert.alert('Error', error.message)
-          return
-        }
-
-        await AsyncStorage.removeItem('cart')
-
-        await sendorderNotifications();
-
-        await generateAndSavePDF(cartItems, total, data?.id || 'N/A')
-
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-
-        Alert.alert('Success', 'Checkout completed!');
+    if (cardNumber.replace(/\s/g, '').length < 16) {
+      Alert.alert('Error', 'Enter a valid card number')
+      return
     }
 
-    return (
-      <SafeAreaView edges={['top']} style={[styles.safearea, { backgroundColor: background }]}>
+    if (cvv.length < 3) {
+      Alert.alert('Error', 'Please enter a valid CVV')
+      return
+    }
+
+    const { data: { user } } = await supabase.auth.getUser()
+
+    const cartData = await AsyncStorage.getItem('cart')
+    const cartItems = cartData ? JSON.parse(cartData) : []
+
+    if (cartItems.length === 0) {
+      Alert.alert('Error', 'Your cart is empty')
+      return
+    }
+
+    const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+
+    const { data, error } = await supabase
+      .from('Orders')
+      .insert({
+        userid: user.id,
+        items: JSON.stringify(cartItems),
+        total: total,
+        status: 'pending',
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single()
+
+    if (error) {
+      Alert.alert('Error', error.message)
+      return
+    }
+
+    await AsyncStorage.removeItem('cart')
+
+    await sendorderNotifications();
+
+    await generateAndSavePDF(cartItems, total, data?.id || 'N/A')
+
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+
+    Alert.alert(
+      'Success',
+      'Checkout completed!',
+      [
+        {
+          text: 'OK',
+          onPress: () => navigation.navigate('Tabnavigator', { screen: 'Home' }),
+        },
+      ]
+    );
+  }
+
+  return (
+    <SafeAreaView edges={['top']} style={[styles.safearea, { backgroundColor: background }]}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
 
         {/* header with back button */}
@@ -238,117 +248,117 @@ const Checkout = ({navigation}) => {
         </TouchableOpacity>
 
       </ScrollView>
-      </SafeAreaView>
-    )
-  }
+    </SafeAreaView>
+  )
+}
 
-  export default Checkout
+export default Checkout
 
-  const styles = StyleSheet.create({
-    safearea: {
-      flex: 1,
-    },
+const styles = StyleSheet.create({
+  safearea: {
+    flex: 1,
+  },
 
-    container: {
-      flex: 1,
-      padding: 20,
-    },
+  container: {
+    flex: 1,
+    padding: 20,
+  },
 
-    headerRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: 12,
-    },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
 
-    backButton: {
-      width: 36,
-      height: 36,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
+  backButton: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
-    headerSpacer: {
-      width: 36,
-    },
+  headerSpacer: {
+    width: 36,
+  },
 
-    title: {
-      fontSize: 22,
-      fontWeight: '700',
-    },
+  title: {
+    fontSize: 22,
+    fontWeight: '700',
+  },
 
-    sectionCard: {
-      borderRadius: 16,
-      padding: 18,
-      marginBottom: 16,
-      borderWidth: 1,
-    },
+  sectionCard: {
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 16,
+    borderWidth: 1,
+  },
 
-    sectionHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-      marginBottom: 14,
-    },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 14,
+  },
 
-    section: {
-      fontSize: 16,
-      fontWeight: '700',
-    },
+  section: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
 
-    secureRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      marginBottom: 12,
-    },
+  secureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 12,
+  },
 
-    securetext: {
-      fontSize: 12,
-      color: '#3F8F68',
-      fontWeight: '600',
-    },
+  securetext: {
+    fontSize: 12,
+    color: '#3F8F68',
+    fontWeight: '600',
+  },
 
-    label: {
-      fontSize: 13,
-      fontWeight: '600',
-      marginBottom: 6,
-      marginTop: 6,
-    },
+  label: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 6,
+    marginTop: 6,
+  },
 
-    input: {
-      borderWidth: 1,
-      borderRadius: 10,
-      padding: 12,
-      fontSize: 15,
-      backgroundColor: 'transparent',
-      marginBottom: 4,
-    },
+  input: {
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 15,
+    backgroundColor: 'transparent',
+    marginBottom: 4,
+  },
 
-    row: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      gap: 12,
-    },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
 
-    halfwidth: {
-      flex: 1,
-    },
+  halfwidth: {
+    flex: 1,
+  },
 
-    button: {
-      backgroundColor: '#c2b5be',
-      padding: 16,
-      borderRadius: 14,
-      alignItems: 'center',
-      marginTop: 10,
-      marginBottom: 50,
-    },
+  button: {
+    backgroundColor: '#c2b5be',
+    padding: 16,
+    borderRadius: 14,
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 50,
+  },
 
-    buttontext: {
-      fontSize: 16,
-      fontWeight: '700',
-      color: 'white',
-    },
+  buttontext: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: 'white',
+  },
 
 
-  })
+})

@@ -3,94 +3,94 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabase";
 import { useTheme } from '../context/ThemeContext';
-import {useFocusEffect} from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 const Page_Size = 4
 
-const Orders = () => {
+const Orders = ({ navigation }) => {
 
-    const { theme, isLowBattery} = useTheme()
+  const { theme, isLowBattery } = useTheme()
 
-    const background = theme === 'dark' ? '#161512' : '#f9f7f6'
-    const textColor  = theme === 'dark' ? '#F5EDE9' : '#2C1F1F'
-    const cardBg = theme === 'dark' ? '#252220' : '#FFFFFF'
-    const mutedText = theme === 'dark' ? '#B3A0A8' : '#8A7A82'
-    const chipBg = theme === 'dark' ? '#2f2a27' : '#EDE6EA'
-    const borderColor = theme === 'dark' ? '#3a3632' : '#EDE3E8'
+  const background = theme === 'dark' ? '#161512' : '#f9f7f6'
+  const textColor = theme === 'dark' ? '#F5EDE9' : '#2C1F1F'
+  const cardBg = theme === 'dark' ? '#252220' : '#FFFFFF'
+  const mutedText = theme === 'dark' ? '#B3A0A8' : '#8A7A82'
+  const chipBg = theme === 'dark' ? '#2f2a27' : '#EDE6EA'
+  const borderColor = theme === 'dark' ? '#3a3632' : '#EDE3E8'
 
-    const [orders, setOrders] = useState([])
-    const [page, setPage] = useState(0)
-    const [hasmore, setHasmore] = useState(true)
-    const [loading, setLoading] = useState(false)
-    const [selectedorder, setSelectedorder] = useState(null)
+  const [orders, setOrders] = useState([])
+  const [page, setPage] = useState(0)
+  const [hasmore, setHasmore] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [selectedorder, setSelectedorder] = useState(null)
 
-    useFocusEffect (
-      useCallback(() => {
-        setOrders([])
-        setPage(0)
-        setHasmore(true)
-        setSelectedorder(null)
-        loadOrders(0, true)
-      }, [])
-    )
+  useFocusEffect(
+    useCallback(() => {
+      setOrders([])
+      setPage(0)
+      setHasmore(true)
+      setSelectedorder(null)
+      loadOrders(0, true)
+    }, [])
+  )
 
-    async function loadOrders(pageNumber, reset = false) {
-      if (isLowBattery) {
-        console.log('Battery low — skipping sync')
-        return
+  async function loadOrders(pageNumber, reset = false) {
+    if (isLowBattery) {
+      console.log('Battery low — skipping sync')
+      return
+    }
+    setLoading(true)
+
+    const { data: { user } } = await supabase.auth.getUser()
+
+    const from = pageNumber * Page_Size
+    const to = from + Page_Size - 1
+
+    const { data, error } = await supabase
+      .from('Orders')
+      .select('*')
+      .eq('userid', user.id)
+      .order('created_at', { ascending: false, nullsFirst: false })
+      .range(from, to)
+
+    if (error) {
+      alert(error.message)
+    } else {
+      if (reset) {
+        setOrders(data)
+      } else {
+        setOrders(prev => [...prev, ...data])
       }
-      setLoading(true)
-
-      const {data: {user}} = await supabase.auth.getUser()
-
-      const from = pageNumber * Page_Size
-      const to = from + Page_Size - 1
-
-      const {data,error} = await supabase
-        .from('Orders')
-        .select('*')
-        .eq('userid', user.id)
-        .order('created_at', {ascending: false})
-        .range(from, to)
-
-        if (error) {
-          alert(error.message)
-        } else {
-          if (reset) {
-            setOrders(data)
-          } else {
-          setOrders(prev => [...prev, ...data])
-          }
-          setHasmore(data.length === Page_Size)
-        }
-          setLoading(false)
+      setHasmore(data.length === Page_Size)
     }
+    setLoading(false)
+  }
 
-    function loadmore(){
-      const nextpage= page + 1
-      setPage(nextpage)
-      loadOrders(nextpage)
+  function loadmore() {
+    const nextpage = page + 1
+    setPage(nextpage)
+    loadOrders(nextpage)
+  }
+
+  function getItems(order) {
+    try {
+      return JSON.parse(order.items) || []
+    } catch {
+      return []
     }
+  }
 
-    function getItems(order){
-      try {
-        return JSON.parse(order.items) || []
-      } catch {
-        return []
-      }
-    }
+  function statusColors(status) {
+    if (status === 'pending') return { color: '#C2883C', background: '#FBF0E1' }
+    return { color: '#3F8F68', background: '#E9F4EE' }
+  }
 
-    function statusColors(status) {
-      if (status === 'pending') return { color: '#C2883C', background: '#FBF0E1' }
-      return { color: '#3F8F68', background: '#E9F4EE' }
-    }
-
-    if (selectedorder) {
-      const items = getItems(selectedorder)
-      const sc = statusColors(selectedorder.status)
-      return (
-        <SafeAreaView edges={['top']} style={[styles.safearea, { backgroundColor: background }]}>
+  if (selectedorder) {
+    const items = getItems(selectedorder)
+    const sc = statusColors(selectedorder.status)
+    return (
+      <SafeAreaView edges={['top']} style={[styles.safearea, { backgroundColor: background }]}>
         <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
           <TouchableOpacity
             style={styles.backbutton}
@@ -153,86 +153,94 @@ const Orders = () => {
             )}
           </View>
         </ScrollView>
-        </SafeAreaView>
-      )
-    }
+      </SafeAreaView>
+    )
+  }
 
-    return (
+  return (
     <SafeAreaView edges={['top']} style={[styles.safearea, { backgroundColor: background }]}>
-    <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
 
-      <View style={styles.logoWrap}>
-        <Image
-          source={require('../assets/images/logo no bg.png')}
-          style={styles.logoImage}
-          resizeMode="contain"
-        />
-      </View>
-
-      <Text style={[styles.title, { color: textColor }]}>My Orders</Text>
-
-      <View style={styles.ordersbox}>
-        {orders.length === 0 && !loading ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="receipt-outline" size={40} color={mutedText} />
-            <Text style={[styles.emptytext, { color: textColor }]}>
-              No orders yet
-            </Text>
-          </View>
-        ) : (
-          orders.map((order) => {
-            const sc = statusColors(order.status)
-            return (
-            <TouchableOpacity
-              key={order.id}
-              style={[styles.card, { backgroundColor: cardBg, borderColor }]}
-              onPress={() => setSelectedorder(order)}
-            >
-              <View style={styles.cardrow}>
-                <Text style={[styles.orderId, { color: textColor }]}>
-                  Order #{order.id.slice(0, 8)}
-                </Text>
-                <Text style={[styles.statusbadge, sc]}>
-                  {order.status}
-                </Text>
-              </View>
-              <Text style={styles.total}>{order.total} USD</Text>
-              <Text style={[styles.date, { color: mutedText }]}>
-                {new Date(order.created_at).toLocaleDateString()}
-              </Text>
-              <View style={styles.taprow}>
-                <Text style={styles.taptext}>View details</Text>
-                <Ionicons name="chevron-forward" size={14} color="#c2b5be" />
-              </View>
-            </TouchableOpacity>
-          )})
-        )}
-
-        {loading && (
-          <ActivityIndicator
-            size="large"
-            color="#c2b5be"
-            style={{ marginTop: 20 }}
-          />
-        )}
-
-        {hasmore && !loading && orders.length > 0 && (
-          <TouchableOpacity
-            style={[styles.loadmorebutton, { backgroundColor: chipBg }]}
-            onPress={loadmore}
-          >
-            <Text style={[styles.loadmoretext, { color: textColor }]}>Load More</Text>
+        <View style={styles.headerRow}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={22} color={textColor} />
           </TouchableOpacity>
-        )}
+          <View style={styles.headerSpacer} />
+        </View>
 
-        {!hasmore && orders.length > 0 && (
-          <Text style={[styles.nomoretext, { color: mutedText }]}>
-            All orders loaded
-          </Text>
-        )}
-      </View>
+        <View style={styles.logoWrap}>
+          <Image
+            source={require('../assets/images/logo no bg.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
+        </View>
 
-    </ScrollView>
+        <Text style={[styles.title, { color: textColor }]}>My Orders</Text>
+
+        <View style={styles.ordersbox}>
+          {orders.length === 0 && !loading ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="receipt-outline" size={40} color={mutedText} />
+              <Text style={[styles.emptytext, { color: textColor }]}>
+                No orders yet
+              </Text>
+            </View>
+          ) : (
+            orders.map((order) => {
+              const sc = statusColors(order.status)
+              return (
+                <TouchableOpacity
+                  key={order.id}
+                  style={[styles.card, { backgroundColor: cardBg, borderColor }]}
+                  onPress={() => setSelectedorder(order)}
+                >
+                  <View style={styles.cardrow}>
+                    <Text style={[styles.orderId, { color: textColor }]}>
+                      Order #{order.id.slice(0, 8)}
+                    </Text>
+                    <Text style={[styles.statusbadge, sc]}>
+                      {order.status}
+                    </Text>
+                  </View>
+                  <Text style={styles.total}>{order.total} USD</Text>
+                  <Text style={[styles.date, { color: mutedText }]}>
+                    {new Date(order.created_at).toLocaleDateString()}
+                  </Text>
+                  <View style={styles.taprow}>
+                    <Text style={styles.taptext}>View details</Text>
+                    <Ionicons name="chevron-forward" size={14} color="#c2b5be" />
+                  </View>
+                </TouchableOpacity>
+              )
+            })
+          )}
+
+          {loading && (
+            <ActivityIndicator
+              size="large"
+              color="#c2b5be"
+              style={{ marginTop: 20 }}
+            />
+          )}
+
+          {hasmore && !loading && orders.length > 0 && (
+            <TouchableOpacity
+              style={[styles.loadmorebutton, { backgroundColor: chipBg }]}
+              onPress={loadmore}
+            >
+              <Text style={[styles.loadmoretext, { color: textColor }]}>Load More</Text>
+            </TouchableOpacity>
+          )}
+
+          {!hasmore && orders.length > 0 && (
+            <Text style={[styles.nomoretext, { color: mutedText }]}>
+              All orders loaded
+            </Text>
+          )}
+        </View>
+
+      </ScrollView>
     </SafeAreaView>
   )
 }
@@ -301,4 +309,13 @@ const styles = StyleSheet.create({
 
   itemname: { fontSize: 14, fontWeight: '600', marginBottom: 2 },
   itemprice: { fontSize: 14, color: '#c2b5be', fontWeight: '600' },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 4,
+  },
+  backButton: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  headerSpacer: { width: 36 },
 })

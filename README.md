@@ -11,6 +11,7 @@ Built as a solo project for a Mobile Commerce university course; since extended 
 - **Supabase** — auth, database (Postgres), storage, and realtime subscriptions
 - **React Navigation** — stack + bottom tab navigation, with deep linking to specific screens and products
 - **AsyncStorage** — local cart persistence
+- **expo-secure-store** — encrypted storage (iOS Keychain / Android Keystore) for the Supabase auth session
 - **expo-file-system** — local product caching for offline browsing
 
 ## Features
@@ -29,7 +30,7 @@ Built as a solo project for a Mobile Commerce university course; since extended 
 - Push notification confirming order placement
 
 ### Account & Orders
-- Email/password auth via Supabase Auth
+- Email/password auth via Supabase Auth, with the session persisted in encrypted device storage (SecureStore) and tokens auto-refreshed
 - Order history with pagination and full order detail view
 - Product image upload to Supabase Storage (camera or gallery)
 
@@ -42,25 +43,25 @@ Built as a solo project for a Mobile Commerce university course; since extended 
 
 ## Getting Started
 
-\`\`\`bash
+```bash
 git clone <repo-url>
 cd shop-app
 npm install
 npx expo start
-\`\`\`
+```
 
-Requires a \`.env\` file with your Supabase project URL and public key:
+Requires a `.env` file with your Supabase project URL and public key:
 
-\`\`\`
+```
 EXPO_PUBLIC_SUPABASE_URL=your-project-url
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-\`\`\`
+```
 
 ## Project Structure
 
-\`\`\`
+```
 /screens        — all app screens (Home, Products, ProductDetail, Cart, Checkout, etc.)
 /navigation     — bottom tab and stack navigators
 /context        — theme, locale, and battery-state context
 /lib            — Supabase client setup
-\`\`\`
+```
